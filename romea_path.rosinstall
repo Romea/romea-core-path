@@ -1,16 +1,4 @@
 - git:
-    local-name: src/romea
-    uri: git@gitlab-ssh.irstea.fr:romea/romea.git
-- git:
-    local-name: src/romea_filtering
-    uri: git@gitlab-ssh.irstea.fr:romea/romea_filtering.git
-- git:
-    local-name: src/romea_localisation
-    uri: git@gitlab-ssh.irstea.fr:romea/ros-localisation/romea_localisation.git
-- git:
-    local-name: src/romea_localisation_msgs
-    uri: git@gitlab-ssh.irstea.fr:romea/ros-localisation/romea_localisation_msgs.git
-- git:
-    local-name: src/romea_fsm
-    uri: git@gitlab-ssh.irstea.fr:romea/romea_fsm.git
+    local-name: src/romea_common
+    uri: git@gitlab-ssh.irstea.fr:romea/romea_common.git
 
