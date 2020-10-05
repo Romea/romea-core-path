@@ -1,3 +1,5 @@
+find_package(GTest REQUIRED)
+
 get_filename_component(TEST_WITH_DATA_TEST_DIR "data" ABSOLUTE)
 configure_file(test_helper.h.in test_helper.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
