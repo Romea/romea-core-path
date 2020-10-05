@@ -20,28 +20,33 @@ before_script:
  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
  - git clone https://gitlab.com/VictorLamoine/ros_gitlab_ci.git
  - source ros_gitlab_ci/gitlab-ci.bash >/dev/null
-
+ - apt-get install -y -qq libgtest-dev
 
 # kinetic
 kinetic:
   image: ros:kinetic-robot
   stage: build
   script:
-      - catkin build --no-status --force-color
-      - catkin run_tests romea_path --no-status --force-color --no-deps
+    - (cd /usr/src/gtest; cmake . && make && cp *.a /usr/lib/)
+    - catkin build romea_path --cmake-args -DBUILD_TESTS=ON
+    - cd build/romea_path
+    - GTEST_COLOR=1 ctest --output-on-failure
 
 # melodic
 melodic:
   image: ros:melodic-robot
   stage: build
   script:
-    - catkin build --summarize --no-status --force-color
-    - catkin run_tests romea_path --no-status --force-color --no-deps
+    - (cd /usr/src/gtest; cmake . && make && cp *.a /usr/lib/)
+    - catkin build romea_path --cmake-args -DBUILD_TESTS=ON
+    - cd build/romea_path
+    - GTEST_COLOR=1 ctest --output-on-failure
 
 # noetic
 noetic_catkin_build:
   image: ros:noetic-robot
   stage: build
   script:
-    - catkin build --summarize --no-status --force-color
-    - catkin run_tests romea_path --no-status --force-color --no-deps
+    - catkin build romea_path --cmake-args -DBUILD_TESTS=ON
+    - cd build/romea_path
+    - GTEST_COLOR=1 ctest --output-on-failure
