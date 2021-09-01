@@ -1,70 +1,39 @@
-#ifndef romea_ENUPath2D_hpp
-#define romea_ENUPath2D_hpp
+#ifndef romea_Path2D_hpp
+#define romea_Path2D_hpp
 
-//romea
-#include <romea_common/math/Interval.hpp>
-#include <romea_common/containers/Eigen/VectorOfEigenVector.hpp>
-#include "PathCurve2D.hpp"
+#include "PathSection2D.hpp"
+#include "CumulativeSum.hpp"
 
-//boost
-#include <boost/optional.hpp>
-#include <atomic>
-
-namespace romea {
+namespace romea
+{
 
 class Path2D
 {
 public:
 
-  using Vector = std::vector<double,Eigen::aligned_allocator<double> > ;
+  using WayPoints = std::vector<std::vector<PathWayPoint2D>>;
+  using CurvilinearAbscissa = CumulativeSum<double,Eigen::aligned_allocator<double>>;
 
 public:
 
-  Path2D();
+  Path2D(const WayPoints& wayPoints, const double & interpolationWindowLength);
 
-  Path2D(const double & interpolationWindowLength);
+  const PathSection2D & getSection(const size_t & sectionIndex)const;
 
-public :
+  const CurvilinearAbscissa &getCurvilinearAbscissa()const;
 
-  void setInterpolationWindowLength(const double & interpolationWindowLength);
+  const double & getLength()const;
 
-  const double & getInterpolationWindowLength()const;
-
-  void load(const VectorOfEigenVector2d & points);
-
-  bool isLoaded()const;
-
-  const Vector & getX()const;
-
-  const Vector & getY()const;
-
-  const Vector & getCurvilinearAbscissa()const;
-
-  const std::vector<PathCurve2D> & getCurves() const;
-
-  double getLength()const;
-
-
-
-  size_t findNearestIndex(const double & curvilinearAbscissa) const;
-
-  Interval<size_t> findMinMaxIndexes(const double & curvilinearAbscissa,
-                                     const double & researchIntervalLength) const;
-
-  Interval<size_t> findMinMaxIndexes(const size_t & pointIndex,
-                                     const double & researchIntervalLength) const;
+  size_t size()const;
 
 private :
 
-  Vector X_;
-  Vector Y_;
-  Vector curvilinearAbscissa_;
-  std::vector<PathCurve2D> curves_;
-  double interpolationWindowLength_;
-
-  std::atomic<bool> isLoaded_;
+  std::vector<PathSection2D> sections_;
+  CurvilinearAbscissa curvilinearAbscissa_;
+  double length_;
 };
 
 }
+
 
 #endif

@@ -24,5 +24,15 @@ std::ostream& operator<<(std::ostream & os, const PathPosture2D & posture)
   return os;
 }
 
+//-----------------------------------------------------------------------------
+PathPosture2D reverse(const PathPosture2D & posture)
+{
+  PathPosture2D reversedPosture= posture;
+  reversedPosture.course = romea::between0And2Pi(posture.course+M_PI);
+  reversedPosture.curvature = - posture.curvature;
+  reversedPosture.dotCurvature = -posture.dotCurvature;
+  return reversedPosture;
+}
+
 
 }

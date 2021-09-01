@@ -1,5 +1,5 @@
-#ifndef romea_ENUPathCurve2D_hpp
-#define romea_ENUPathCurve2D_hpp
+#ifndef romea_PathCurve2D_hpp
+#define romea_PathCurve2D_hpp
 
 //romea
 #include "PathPosture2D.hpp"
@@ -26,7 +26,8 @@ public :
   bool estimate(const Vector & X,
                 const Vector & Y,
                 const Vector & S ,
-                const Interval<size_t> & indexRange);
+                const Interval<size_t> & indexInterval,
+                const Interval<double> & curvilinearAbscissaInterval);
 
   bool findNearestCurvilinearAbscissa(const Eigen::Vector2d & vehiclePosition,
                                       double & curvilinearAbscissa) const;
@@ -39,19 +40,17 @@ public :
 
   double computeCurvature(const double & curvilinearAbscissa)const;
 
-  const double & getMinimalCurvilinearAbscissa()const;
+  const Interval<double> & getCurvilinearAbscissaInterval()const;
 
-  const double & getMaximalCurvilinearAbscissa()const;
-
-  const Interval<size_t> & getIndexRange()const;
+  const Interval<size_t> & getIndexInterval()const;
 
 private :
 
   Eigen::Array3d fxPolynomCoefficient_;
   Eigen::Array3d fyPolynomCoefficient_;
-  double minimalCurvilinearAbscissa_;
-  double maximalCurvilinearAbscissa_;
-  Interval<size_t> indexRange_;
+
+  Interval<size_t> indexInterval_;
+  Interval<double> curvilinearAbscissaInterval_;
 
 
 };

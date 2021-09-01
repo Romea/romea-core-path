@@ -17,6 +17,8 @@ add_library(${PROJECT_NAME} SHARED
   src/PathMatchedPoint2D.cpp
   src/PathMatching2D.cpp
   src/PathPosture2D.cpp
+  src/PathSection2D.cpp
+  src/PathWayPoint2D.cpp
   )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

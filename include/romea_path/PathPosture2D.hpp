@@ -23,6 +23,8 @@ struct PathPosture2D {
 
 std::ostream& operator<<(std::ostream & os, const PathPosture2D & posture);
 
+PathPosture2D reverse(const PathPosture2D & posture);
+
 }
 
 #endif

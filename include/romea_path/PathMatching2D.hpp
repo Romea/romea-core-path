@@ -1,54 +1,72 @@
-#ifndef romea_ENUPathMatching2D_hpp
-#define romea_ENUPathMatching2D_hpp
+#ifndef romea_PathMatching2D_hpp
+#define romea_PathMatching2D_hpp
 
+//romea
 #include "Path2D.hpp"
-#include "PathCurve2D.hpp"
 #include "PathMatchedPoint2D.hpp"
 #include <romea_common/geometry/PoseAndTwist2D.hpp>
 
+//std
+#include <vector>
+
+//boost
+#include <boost/optional.hpp>
+
 namespace romea {
 
-class PathMatching2D
-{
 
-public :
+std::vector<PathMatchedPoint2D> match(const Path2D & path,
+                                      const Pose2D & vehiclePose,
+                                      const double & vehicleSpeed,
+                                      const double & time_horizon,
+                                      const double & researchRadius);
 
-  PathMatching2D();
+std::vector<PathMatchedPoint2D> match(const Path2D & path,
+                                      const Pose2D & vehiclePose,
+                                      const double & vehicleSpeed,
+                                      const PathMatchedPoint2D & previousMatchedPoint,
+                                      const double & expectedTravelledDistance,
+                                      const double & time_horizon,
+                                      const double & researchRadius);
 
-  PathMatching2D(const double & maximalResearchRadius);
+std::vector<PathMatchedPoint2D> match(const Path2D & path,
+                                      const Pose2D & vehiclePose,
+                                      const double & vehicleSpeed,
+                                      const size_t & previousSectionIndex,
+                                      const size_t & previousCurveIndex,
+                                      const Interval<double> & curvilinearAbscissaInterval,
+                                      const double & time_horizon,
+                                      const double &researchRadius);
 
-  void setMaximalResearchRadius(const double & maximalResearchRadius);
-
-  boost::optional<PathMatchedPoint2D> match(const Path2D & path,
-                                            const Pose2D & vehiclePose);
-
-  boost::optional<PathMatchedPoint2D> match(const Path2D & path,
-                                            const Pose2D & vehiclePose,
-                                            const PathMatchedPoint2D & previousMatchedPoint,
-                                            const double & expectedTravelledDistance);
-
-  double computeFutureCurvature(const Path2D & path,
-                                const PathMatchedPoint2D & matchedPoint,
-                                const double & linear_speed,
-                                const double & time_horizon);
-
-private :
-
-
-  size_t findNearestPointIndex_(const Path2D & path,
-                                const Eigen::Vector2d & vehiclePosition,
-                                const Interval<size_t> indexRange)const;
+size_t bestMatchedPointIndex(const std::vector<PathMatchedPoint2D> & matchedPoints,
+                             const double & vehicleSpeed);
 
 
-  boost::optional<PathMatchedPoint2D> findMatchedPoint_(const Path2D & path,
-                                                        const Pose2D &vehiclePose,
-                                                        const size_t & nearestPointIndex);
+boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                          const Pose2D & vehiclePose,
+                                          const double & vehicleSpeed,
+                                          const double & time_horizon,
+                                          const double & researchRadius);
 
-private:
+boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                          const Pose2D & vehiclePose,
+                                          const double & vehicleSpeed,
+                                          const PathMatchedPoint2D & previousMatchedPoint,
+                                          const double & expectedTravelledDistance,
+                                          const double & time_horizon,
+                                          const double & researchRadius);
 
-  double maximalResearchRadius_;
+boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                          const Pose2D & vehiclePose,
+                                          const double & vehicleSpeed,
+                                          const size_t & previousCurveIndex,
+                                          const Interval<double> & curvilinearAbscissaInterval,
+                                          const double & time_horizon,
+                                          const double &researchRadius);
 
-};
+boost::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
+                                          const Pose2D & vehiclePose,
+                                          const double & desiredSpeed);
 
 }
 

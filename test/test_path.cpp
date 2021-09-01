@@ -3,7 +3,7 @@
 #include "test_helper.h"
 
 //romea
-#include "romea_path/PathMatching2D.hpp"
+#include "PathMatching2D.hpp"
 #include "test_utils.hpp"
 
 
@@ -15,73 +15,35 @@ public :
 
   virtual void SetUp() override
   {
-    path.setInterpolationWindowLength(3);
-    path.load(loadPath("/path.txt"));
+    std::vector<std::vector<romea::PathWayPoint2D>> wayPoints(3);
+    wayPoints[0]=loadWayPoints("/bird_path1.txt");
+    wayPoints[1]=loadWayPoints("/bird_path2.txt");
+    wayPoints[2]=loadWayPoints("/bird_path3.txt");
+    path = std::make_unique<romea::Path2D>(wayPoints,3);
   }
 
-  romea::Path2D path;
+  std::unique_ptr<romea::Path2D> path;
 };
 
 
 //-----------------------------------------------------------------------------
-TEST_F(TestPath, isLoadedOK)
+TEST_F(TestPath, isSizeOK)
 {
-  EXPECT_EQ(path.isLoaded(),true);
+  EXPECT_EQ(path->size(),3);
+  EXPECT_EQ(path->getSection(0).size(),259);
+  EXPECT_EQ(path->getSection(1).size(),17);
+  EXPECT_EQ(path->getSection(2).size(),255);
 }
 
 //-----------------------------------------------------------------------------
 TEST_F(TestPath, isLengthOK)
 {
-  EXPECT_DOUBLE_EQ(path.getLength(),246.80741112805143);
+  EXPECT_DOUBLE_EQ(path->getSection(0).getLength(),25.758932752740488);
+  EXPECT_DOUBLE_EQ(path->getSection(1).getLength(),1.5998739194895477);
+  EXPECT_DOUBLE_EQ(path->getSection(2).getLength(),25.296885714279526);
+  EXPECT_DOUBLE_EQ(path->getLength(),52.655692386509557);
 }
 
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, isLengthInterpolcationWindowLenghtOK)
-{
-  EXPECT_DOUBLE_EQ(path.getInterpolationWindowLength(),3);
-}
-
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, testNumberOfCurvesOK)
-{
-  size_t numberOfCurves = 2427;
-  EXPECT_EQ(path.getCurves().size(),numberOfCurves);
-  EXPECT_EQ(path.getX().size(),numberOfCurves);
-  EXPECT_EQ(path.getY().size(),numberOfCurves);
-  EXPECT_EQ(path.getCurvilinearAbscissa().size(),numberOfCurves);
-}
-
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, testFindMinMaxIndexNearPathBegin)
-{
-  auto range = path.findMinMaxIndexes(1.,2.);
-
-  EXPECT_EQ(range.lower(),0);
-  EXPECT_EQ(range.upper(),22);
-}
-
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, testFindMinMaxIndexInCenterOfPahtPath)
-{
-  auto range = path.findMinMaxIndexes(path.getLength()/2.,2.);
-
-  EXPECT_EQ(range.lower(),1224);
-  EXPECT_EQ(range.upper(),1244);
-}
-
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, testFindMinMaxIndexNearPathEnd)
-{
-  auto range = path.findMinMaxIndexes(path.getLength()-1,2.);
-  EXPECT_EQ(range.lower(),2404);
-  EXPECT_EQ(range.upper(),2426);
-}
-
-//-----------------------------------------------------------------------------
-TEST_F(TestPath, testFindNearestIndex)
-{
-  EXPECT_EQ(path.findNearestIndex(42.36),430);
-}
 
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv){

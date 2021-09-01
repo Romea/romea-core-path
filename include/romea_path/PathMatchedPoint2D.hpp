@@ -12,19 +12,21 @@ namespace romea {
 
 struct PathMatchedPoint2D {
 
-public :
-
   using Opt = boost::optional<PathMatchedPoint2D> ;
 
   PathMatchedPoint2D();
 
   PathPosture2D pathPosture;
   PathFrenetPose2D frenetPose;
-  size_t nearestPointIndex;
-
+  double futureCurvature;
+  double desiredSpeed;
+  size_t sectionIndex;
+  size_t curveIndex;
 };
 
 std::ostream& operator<<(std::ostream & os, const PathMatchedPoint2D & matchedPoint);
+
+bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2);
 
 }//End of namespace romea
 

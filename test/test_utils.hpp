@@ -1,23 +1,42 @@
 //std
 #include <fstream>
 #include "test_helper.h"
-#include <romea_common/containers/Eigen/VectorOfEigenVector.hpp>
+#include "PathWayPoint2D.hpp"
 
 //-----------------------------------------------------------------------------
-romea::VectorOfEigenVector2d loadPath(const std::string &filename)
+std::vector<romea::PathWayPoint2D> loadWayPoints(const std::string &filename)
 {
-  romea::VectorOfEigenVector2d points;
-  points.reserve(1000);
+  std::vector<romea::PathWayPoint2D> wayPoints;
+  wayPoints.reserve(1000);
 
   std::string path = std::string(TEST_DIR);
   std::ifstream data(path +filename);
 
-  Eigen::Vector2d p;
+
+  romea::PathWayPoint2D wayPoint;
+  romea::PathWayPoint2D previousWayPoint;
+  previousWayPoint.position << std::numeric_limits<double>::max(),std::numeric_limits<double>::max();
+  previousWayPoint.desired_speed = 0;
+
   while(!data.eof())
   {
-    data >> p[0] >> p[1];
-    points.push_back(p);
+
+    data >> wayPoint.position[0] >> wayPoint.position[1]>>wayPoint.desired_speed;
+//    std::cout << p.transpose() <<" "<< (p-pp).norm()<<" "<< points.size()<< std::endl;
+
+    if( (wayPoint.position-previousWayPoint.position).norm()> 0.01)
+    {
+//      std::cout << p.transpose() << std::endl;
+      wayPoints.push_back(wayPoint);
+    }
+    else
+    {
+      break;
+    }
+
+    previousWayPoint=wayPoint;
   }
 
-  return points;
+  std::cout << " wayPoints.size() " << wayPoints.size()<< std::endl;
+  return wayPoints;
 }

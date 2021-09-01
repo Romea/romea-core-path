@@ -18,6 +18,8 @@ struct PathFrenetPose2D {
 
 std::ostream& operator<<(std::ostream & os, const PathFrenetPose2D & frenetPose);
 
+PathFrenetPose2D reverse(const PathFrenetPose2D & frenetPose);
+
 }
 
 #endif

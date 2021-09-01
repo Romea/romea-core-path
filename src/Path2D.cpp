@@ -1,161 +1,72 @@
 #include "romea_path/Path2D.hpp"
 #include <iostream>
 
-namespace {
-
-}
-
 namespace romea {
 
 
 //-----------------------------------------------------------------------------
-Path2D::Path2D():
-  Path2D(0)
+Path2D::Path2D(const WayPoints & wayPoints,
+               const double & interpolationWindowLength):
+  sections_(),
+  curvilinearAbscissa_(0),
+  length_(0)
 {
+  sections_.reserve(wayPoints.size());
 
-}
-
-//-----------------------------------------------------------------------------
-Path2D::Path2D(const double &interpolationWindowLength):
-  X_(),
-  Y_(),
-  curvilinearAbscissa_(),
-  curves_(),
-  interpolationWindowLength_(interpolationWindowLength),
-  isLoaded_(false)
-{
-}
-
-//-----------------------------------------------------------------------------
-void Path2D::setInterpolationWindowLength(const double & interpolationWindowLength)
-{
-  interpolationWindowLength_=interpolationWindowLength;
-}
-
-//-----------------------------------------------------------------------------
-const double & Path2D::getInterpolationWindowLength()const
-{
-  return interpolationWindowLength_;
-}
-
-//-----------------------------------------------------------------------------
-void Path2D::load(const VectorOfEigenVector2d &points)
-{
-  const auto numberOfPoints = points.size();
-  assert(numberOfPoints>=2);
-
-  X_.resize(numberOfPoints,0);
-  Y_.resize(numberOfPoints,0);
-  curvilinearAbscissa_.resize(numberOfPoints,0);
-
-  X_[0]=points[0].x();
-  Y_[0]=points[0].y();
-
-  for(size_t n=1;n<numberOfPoints;++n)
+  std::cout << " cououc " << std::endl;
+  for(const auto & sectionWayPoints : wayPoints)
   {
-    X_[n]=points[n].x();
-    Y_[n]=points[n].y();
-    curvilinearAbscissa_[n] = curvilinearAbscissa_[n-1]+(points[n]-points[n-1]).norm();
+    if(sections_.empty())
+    {
+      sections_.emplace_back(interpolationWindowLength,0);
+      sections_.back().addWayPoints(sectionWayPoints);
+    }
+    else
+    {
+      curvilinearAbscissa_.increment(sections_.back().getLength());
+      sections_.emplace_back(interpolationWindowLength,curvilinearAbscissa_.finalValue());
+      sections_.back().addWayPoints(sectionWayPoints);
+    }
+
+    length_+=sections_.back().getLength();
+
   }
 
-  curves_.resize(numberOfPoints);
-  for(size_t n =0 ; n < numberOfPoints; ++n )
+  for(size_t i=0; i < sections_.size();++i)
   {
-    Interval<size_t> indexRange= findMinMaxIndexes(n,interpolationWindowLength_);
-    assert(curves_[n].estimate(X_,Y_,curvilinearAbscissa_,indexRange));
+    for(size_t j=0; j < sections_[i].size();++j)
+    {
+      sections_[i].getCurve(j);
+    }
   }
 
-  isLoaded_=true;
+  std::cout << sections_.size() <<std::endl;
+  std::cout << sections_[0].size() <<std::endl;
+
 }
 
-
 //-----------------------------------------------------------------------------
-size_t Path2D::findNearestIndex(const double & curvilinearAbscissa) const
+const PathSection2D & Path2D::getSection(const size_t & sectionIndex)const
 {
-  if(curvilinearAbscissa<=0)
-  {
-    return 0;
-  }
-  else if(curvilinearAbscissa>=curvilinearAbscissa_.back())
-  {
-    return  curvilinearAbscissa_.size()-1;
-  }
-  else
-  {
-    auto it = std::lower_bound(curvilinearAbscissa_.cbegin(),
-                               curvilinearAbscissa_.cend(),
-                               curvilinearAbscissa);
-
-    return std::distance(curvilinearAbscissa_.cbegin(),it);
-  }
+  return sections_[sectionIndex];
 }
 
 //-----------------------------------------------------------------------------
-Interval<size_t> Path2D::findMinMaxIndexes(const double & curvilinearAbscissa,
-                                           const double & researchIntervalLength) const
+const double & Path2D::getLength()const
 {
-  return findMinMaxIndexes(findNearestIndex(curvilinearAbscissa),
-                           researchIntervalLength);
+  return length_;
 }
 
 //-----------------------------------------------------------------------------
-Interval<size_t> Path2D::findMinMaxIndexes(const size_t & pointIndex,
-                                           const double & researchIntervalLength)const
+size_t Path2D::size()const
 {
-  size_t minimalIndex = pointIndex;
-  size_t maximalIndex = pointIndex;
-  double pointCurvilinearAbscissa = curvilinearAbscissa_[pointIndex];
-
-  while(minimalIndex !=0 &&
-        pointCurvilinearAbscissa - curvilinearAbscissa_[minimalIndex] < researchIntervalLength/2.)
-  {
-    minimalIndex--;
-  }
-
-  while(maximalIndex != curvilinearAbscissa_.size()-1 &&
-        curvilinearAbscissa_[maximalIndex] - pointCurvilinearAbscissa < researchIntervalLength/2.)
-  {
-    maximalIndex++;
-  }
-
-  return Interval<size_t>(minimalIndex,maximalIndex);
-}
-
-
-//-----------------------------------------------------------------------------
-bool Path2D::isLoaded()const
-{
-  return isLoaded_;
+  return sections_.size();
 }
 
 //-----------------------------------------------------------------------------
-const Path2D::Vector & Path2D::getX()const
-{
-  return X_;
-}
-
-//-----------------------------------------------------------------------------
-const Path2D::Vector & Path2D::getY()const
-{
-  return Y_;
-}
-
-//-----------------------------------------------------------------------------
-const Path2D::Vector & Path2D::getCurvilinearAbscissa()const
+const Path2D::CurvilinearAbscissa &Path2D::getCurvilinearAbscissa()const
 {
   return curvilinearAbscissa_;
-}
-
-//-----------------------------------------------------------------------------
-double Path2D::getLength()const
-{
-  return curvilinearAbscissa_.back();
-}
-
-//-----------------------------------------------------------------------------
-const std::vector<PathCurve2D> & Path2D::getCurves() const
-{
-  return curves_;
 }
 
 
