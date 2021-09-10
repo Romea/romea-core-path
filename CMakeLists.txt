@@ -8,7 +8,7 @@ project(
   LANGUAGES CXX)
 
 find_package(romea_common REQUIRED)
-find_package(romea_localisation)
+find_package(romea_common)
 find_package(Boost COMPONENTS system REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
@@ -25,7 +25,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-  ${romea_localisation_INCLUDE_DIRS}
+  ${romea_common_INCLUDE_DIRS}
   ${boost_INCLUDE_DIRS}
   )
 
@@ -33,7 +33,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   -Wall -Wextra -O3 -std=c++17)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  romea_localisation::romea_localisation)
+  romea_common::romea_common)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   gsl blas)
