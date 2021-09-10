@@ -11,5 +11,4 @@
   <export>
     <build_type>cmake</build_type>
   </export>
-  <depend>romea_localisation</depend>
 </package>
