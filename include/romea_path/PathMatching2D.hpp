@@ -4,7 +4,7 @@
 #include "Path2D.hpp"
 #include "PathCurve2D.hpp"
 #include "PathMatchedPoint2D.hpp"
-#include <romea_localisation/PoseAndTwist2D.hpp>
+#include <romea_common/geometry/PoseAndTwist2D.hpp>
 
 namespace romea {
 
