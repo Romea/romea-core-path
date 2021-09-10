@@ -11,4 +11,5 @@
   <export>
     <build_type>cmake</build_type>
   </export>
+  <depend>romea_common</depend>
 </package>

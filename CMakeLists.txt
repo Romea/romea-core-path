@@ -8,7 +8,6 @@ project(
   LANGUAGES CXX)
 
 find_package(romea_common REQUIRED)
-find_package(romea_common)
 find_package(Boost COMPONENTS system REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
