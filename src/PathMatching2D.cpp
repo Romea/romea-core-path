@@ -38,22 +38,22 @@ size_t findNearestCurveIndex(const romea::PathSection2D & section,
     }
   }
 
-//  std::cout << " nearestPointIndex " <<nearestPointIndex <<" "<< minimalDistance<<" "<< indexRange.upper()<< std::endl;
+  //  std::cout << " nearestPointIndex " <<nearestPointIndex <<" "<< minimalDistance<<" "<< indexRange.upper()<< std::endl;
 
   return nearestPointIndex;
 }
 
 
 //-----------------------------------------------------------------------------
-boost::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D & section,
-                                                      const romea::Pose2D & vehiclePose,
-                                                      const double & vehicleSpeed,
-                                                      const double & time_horizon,
-                                                      const romea::Interval<size_t> & rangeIndex,
-                                                      const double & researchRadius)
+std::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D & section,
+                                                    const romea::Pose2D & vehiclePose,
+                                                    const double & vehicleSpeed,
+                                                    const double & time_horizon,
+                                                    const romea::Interval<size_t> & rangeIndex,
+                                                    const double & researchRadius)
 {
 
-  boost::optional<romea::PathMatchedPoint2D> matchedPoint;
+  std::optional<romea::PathMatchedPoint2D> matchedPoint;
 
   size_t nearestCurveIndex = findNearestCurveIndex(section,
                                                    vehiclePose.position,
@@ -67,7 +67,7 @@ boost::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D
                          section.getSpeeds()[nearestCurveIndex]);
   }
 
-  if(matchedPoint.is_initialized())
+  if(matchedPoint.has_value())
   {
     matchedPoint->curveIndex = findNearestCurveIndex(section,
                                                      matchedPoint->pathPosture.position,
@@ -87,11 +87,11 @@ boost::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D
 
 
 //-----------------------------------------------------------------------------
-boost::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D & section,
-                                                      const romea::Pose2D & vehiclePose,
-                                                      const double & vehicleSpeed,
-                                                      const double & time_horizon,
-                                                      const double & researchRadius)
+std::optional<romea::PathMatchedPoint2D> match_impl(const romea::PathSection2D & section,
+                                                    const romea::Pose2D & vehiclePose,
+                                                    const double & vehicleSpeed,
+                                                    const double & time_horizon,
+                                                    const double & researchRadius)
 {
   return match_impl(section,
                     vehiclePose,
@@ -143,7 +143,7 @@ void match_impl(const romea::Path2D & path,
 {
 
 
-//  std::cout <<"\n\n local"<< std::endl;
+  //  std::cout <<"\n\n local"<< std::endl;
   const auto & section = path.getSection(sectionIndex);
   romea::Interval<size_t> rangeIndex = section.
       findIntervalBoundIndexes(curveIndex,curvilinearAbscissaResearchInterval);
@@ -154,7 +154,7 @@ void match_impl(const romea::Path2D & path,
                                  time_horizon,
                                  rangeIndex,
                                  researchRadius);
-  if(matched_point.is_initialized())
+  if(matched_point.has_value())
   {
     matched_point->sectionIndex=sectionIndex;
     matchedPoints.push_back(*matched_point);
@@ -173,12 +173,12 @@ void match_impl(const romea::Path2D & path,
 
 
     auto previousMatchedPoint =match_impl(previousSection,
-                                            vehiclePose,
-                                            vehicleSpeed,
-                                            time_horizon,
-                                            previousrangeIndex,
-                                            researchRadius);
-    if(previousMatchedPoint.is_initialized())
+                                          vehiclePose,
+                                          vehicleSpeed,
+                                          time_horizon,
+                                          previousrangeIndex,
+                                          researchRadius);
+    if(previousMatchedPoint.has_value())
     {
       previousMatchedPoint->sectionIndex=sectionIndex-1;
       matchedPoints.push_front(*previousMatchedPoint);
@@ -198,13 +198,13 @@ void match_impl(const romea::Path2D & path,
         findIntervalBoundIndexes(0,curvilinearAbscissaResearchInterval);
 
     auto nextMatchedPoint =match_impl(nextSection,
-                                        vehiclePose,
-                                        vehicleSpeed,
-                                        time_horizon,
-                                        nextRangeIndex,
-                                        researchRadius);
+                                      vehiclePose,
+                                      vehicleSpeed,
+                                      time_horizon,
+                                      nextRangeIndex,
+                                      researchRadius);
 
-    if(nextMatchedPoint.is_initialized())
+    if(nextMatchedPoint.has_value())
     {
       nextMatchedPoint->sectionIndex=sectionIndex+1;
       matchedPoints.push_back(*nextMatchedPoint);
@@ -317,11 +317,11 @@ size_t bestMatchedPointIndex(const std::vector<PathMatchedPoint2D> & matchedPoin
 }
 
 //-----------------------------------------------------------------------------
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const double & time_horizon,
-                                          const double & researchRadius)
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const double & time_horizon,
+                                        const double & researchRadius)
 {
   return match_impl(section,vehiclePose,vehicleSpeed,time_horizon,researchRadius);
 }
@@ -329,13 +329,13 @@ boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
 
 
 //-----------------------------------------------------------------------------
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const PathMatchedPoint2D & previousMatchedPoint,
-                                          const double & expectedTravelledDistance,
-                                          const double & time_horizon,
-                                          const double & researchRadius)
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const PathMatchedPoint2D & previousMatchedPoint,
+                                        const double & expectedTravelledDistance,
+                                        const double & time_horizon,
+                                        const double & researchRadius)
 {
 
   double s = previousMatchedPoint.frenetPose.curvilinearAbscissa;
@@ -352,13 +352,13 @@ boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
 }
 
 //-----------------------------------------------------------------------------
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const size_t & previousCurveIndex,
-                                          const Interval<double> & curvilinearAbscissaInterval,
-                                          const double &time_horizon,
-                                          const double & researchRadius)
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const size_t & previousCurveIndex,
+                                        const Interval<double> & curvilinearAbscissaInterval,
+                                        const double &time_horizon,
+                                        const double & researchRadius)
 {
 
   Interval<size_t> rangeIndex = section.
@@ -374,9 +374,9 @@ boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
 
 
 //-----------------------------------------------------------------------------
-boost::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
-                                          const Pose2D & vehiclePose,
-                                          const double & desiredSpeed)
+std::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
+                                        const Pose2D & vehiclePose,
+                                        const double & desiredSpeed)
 {
 
   double nearestCurvilinearAbscissa;
@@ -421,10 +421,10 @@ boost::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
       matchedPoint.frenetPose.covariance=frenetPoseCovariance;
       return matchedPoint;
     }
-//    else
-//    {
-//      std::cout <<" cap rejection "<< std::endl;
-//    }
+    //    else
+    //    {
+    //      std::cout <<" cap rejection "<< std::endl;
+    //    }
 
   }
 

@@ -28,7 +28,7 @@ void PathSection2D::addWayPoint(const PathWayPoint2D & wayPoint)
   X_.push_back(wayPoint.position.x());
   Y_.push_back(wayPoint.position.y());
   incrementCurvilinearAbscissa_();
-  curves_.push_back(boost::optional<PathCurve2D>());
+  curves_.push_back(std::optional<PathCurve2D>());
   speeds_.push_back(wayPoint.desired_speed);
 }
 
@@ -60,7 +60,7 @@ void PathSection2D::incrementCurvilinearAbscissa_()
 //-----------------------------------------------------------------------------
 const PathCurve2D &PathSection2D::getCurve(const size_t & pointIndex)const
 {
-  if(!curves_[pointIndex].is_initialized())
+  if(!curves_[pointIndex].has_value())
   {
     computePathCurve_(pointIndex);
   }

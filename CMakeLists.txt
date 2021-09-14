@@ -8,7 +8,6 @@ project(
   LANGUAGES CXX)
 
 find_package(romea_common REQUIRED)
-find_package(Boost COMPONENTS system REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/Path2D.cpp
@@ -27,7 +26,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${romea_common_INCLUDE_DIRS}
-  ${boost_INCLUDE_DIRS}
   )
 
 target_compile_options(${PROJECT_NAME} PRIVATE

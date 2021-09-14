@@ -8,9 +8,7 @@
 
 //std
 #include <vector>
-
-//boost
-#include <boost/optional.hpp>
+#include <optional>
 
 namespace romea {
 
@@ -42,31 +40,31 @@ size_t bestMatchedPointIndex(const std::vector<PathMatchedPoint2D> & matchedPoin
                              const double & vehicleSpeed);
 
 
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const double & time_horizon,
-                                          const double & researchRadius);
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const double & time_horizon,
+                                        const double & researchRadius);
 
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const PathMatchedPoint2D & previousMatchedPoint,
-                                          const double & expectedTravelledDistance,
-                                          const double & time_horizon,
-                                          const double & researchRadius);
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const PathMatchedPoint2D & previousMatchedPoint,
+                                        const double & expectedTravelledDistance,
+                                        const double & time_horizon,
+                                        const double & researchRadius);
 
-boost::optional<PathMatchedPoint2D> match(const PathSection2D & section,
-                                          const Pose2D & vehiclePose,
-                                          const double & vehicleSpeed,
-                                          const size_t & previousCurveIndex,
-                                          const Interval<double> & curvilinearAbscissaInterval,
-                                          const double & time_horizon,
-                                          const double &researchRadius);
+std::optional<PathMatchedPoint2D> match(const PathSection2D & section,
+                                        const Pose2D & vehiclePose,
+                                        const double & vehicleSpeed,
+                                        const size_t & previousCurveIndex,
+                                        const Interval<double> & curvilinearAbscissaInterval,
+                                        const double & time_horizon,
+                                        const double &researchRadius);
 
-boost::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
-                                          const Pose2D & vehiclePose,
-                                          const double & desiredSpeed);
+std::optional<PathMatchedPoint2D> match(const PathCurve2D & curve,
+                                        const Pose2D & vehiclePose,
+                                        const double & desiredSpeed);
 
 }
 

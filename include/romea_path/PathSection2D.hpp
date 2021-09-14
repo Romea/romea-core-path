@@ -9,9 +9,9 @@
 #include "PathCurve2D.hpp"
 #include "PathWayPoint2D.hpp"
 
-//boost
-#include <boost/optional.hpp>
+//std
 #include <atomic>
+#include <optional>
 
 namespace romea {
 
@@ -79,7 +79,7 @@ private :
   Vector Y_;
   CurvilinearAbscissa curvilinearAbscissa_;
 
-  mutable std::vector<boost::optional<PathCurve2D>> curves_;
+  mutable std::vector<std::optional<PathCurve2D>> curves_;
   Vector speeds_;
 
   double interpolationWindowLength_;

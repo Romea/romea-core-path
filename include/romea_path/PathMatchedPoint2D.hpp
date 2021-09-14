@@ -5,14 +5,9 @@
 #include "PathPosture2D.hpp"
 #include "PathFrenetPose2D.hpp"
 
-//boost to replace by std optional
-#include <boost/optional/optional.hpp>
-
 namespace romea {
 
 struct PathMatchedPoint2D {
-
-  using Opt = boost::optional<PathMatchedPoint2D> ;
 
   PathMatchedPoint2D();
 
