@@ -1,5 +1,5 @@
 //romea
-#include "romea_path/PathCurve2D.hpp"
+#include "romea_core_path/PathCurve2D.hpp"
 
 //Eigen
 #include <unsupported/Eigen/Polynomials>

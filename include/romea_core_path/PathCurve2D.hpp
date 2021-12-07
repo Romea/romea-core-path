@@ -4,7 +4,7 @@
 //romea
 #include "PathPosture2D.hpp"
 #include "PathFrenetPose2D.hpp"
-#include <romea_common/math/Interval.hpp>
+#include <romea_core_common/math/Interval.hpp>
 
 //std
 #include <vector>

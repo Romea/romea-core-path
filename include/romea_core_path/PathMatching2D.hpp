@@ -4,7 +4,7 @@
 //romea
 #include "Path2D.hpp"
 #include "PathMatchedPoint2D.hpp"
-#include <romea_common/geometry/PoseAndTwist2D.hpp>
+#include <romea_core_common/geometry/PoseAndTwist2D.hpp>
 
 //std
 #include <vector>

@@ -2,9 +2,9 @@
 #define romea_PathSection2D_hpp
 
 //romea
-#include <romea_common/math/Interval.hpp>
-#include <romea_common/containers/Eigen/VectorOfEigenVector.hpp>
-#include <romea_common/containers/Eigen/DequeOfEigenVector.hpp>
+#include <romea_core_common/math/Interval.hpp>
+#include <romea_core_common/containers/Eigen/VectorOfEigenVector.hpp>
+#include <romea_core_common/containers/Eigen/DequeOfEigenVector.hpp>
 #include "CumulativeSum.hpp"
 #include "PathCurve2D.hpp"
 #include "PathWayPoint2D.hpp"

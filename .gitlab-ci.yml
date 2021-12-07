@@ -28,8 +28,8 @@ melodic:
   stage: build
   script:
     - (cd /usr/src/gtest; cmake . && make && cp *.a /usr/lib/)
-    - catkin build romea_path --cmake-args -DBUILD_TESTS=ON
-    - cd build/romea_path
+    - catkin build romea_core_path --cmake-args -DBUILD_TESTS=ON
+    - cd build/romea_core_path
     - GTEST_COLOR=1 ctest --output-on-failure
 
 # noetic
@@ -37,6 +37,6 @@ noetic_catkin_build:
   image: ros:noetic-robot
   stage: build
   script:
-    - catkin build romea_path --cmake-args -DBUILD_TESTS=ON
-    - cd build/romea_path
+    - catkin build romea_core_path --cmake-args -DBUILD_TESTS=ON
+    - cd build/romea_core_path
     - GTEST_COLOR=1 ctest --output-on-failure

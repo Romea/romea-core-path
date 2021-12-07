@@ -1,4 +1,4 @@
-#include "romea_path/Path2D.hpp"
+#include "romea_core_path/Path2D.hpp"
 #include <iostream>
 
 namespace romea {

@@ -1,4 +1,4 @@
-#include "romea_path/PathWayPoint2D.hpp"
+#include "romea_core_path/PathWayPoint2D.hpp"
 
 namespace romea
 {

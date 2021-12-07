@@ -1,6 +1,6 @@
 //romea
-#include "romea_path/PathMatchedPoint2D.hpp"
-#include <romea_common/math/EulerAngles.hpp>
+#include "romea_core_path/PathMatchedPoint2D.hpp"
+#include <romea_core_common/math/EulerAngles.hpp>
 #include <iostream>
 
 namespace romea {

@@ -1,6 +1,6 @@
 //romea
-#include "romea_path/PathFrenetPose2D.hpp"
-#include <romea_common/math/EulerAngles.hpp>
+#include "romea_core_path/PathFrenetPose2D.hpp"
+#include <romea_core_common/math/EulerAngles.hpp>
 
 //std
 #include <iostream>

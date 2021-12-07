@@ -1,5 +1,5 @@
-#include "romea_path/PathPosture2D.hpp"
-#include <romea_common/math/EulerAngles.hpp>
+#include "romea_core_path/PathPosture2D.hpp"
+#include <romea_core_common/math/EulerAngles.hpp>
 
 namespace romea {
 

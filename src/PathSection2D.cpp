@@ -1,4 +1,4 @@
-#include "romea_path/PathSection2D.hpp"
+#include "romea_core_path/PathSection2D.hpp"
 #include <iostream>
 #include <algorithm>
 

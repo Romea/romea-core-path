@@ -1,7 +1,7 @@
 //romea
-#include "romea_path/PathMatching2D.hpp"
-#include <romea_common/math/EulerAngles.hpp>
-#include <romea_common/math/Algorithm.hpp>
+#include "romea_core_path/PathMatching2D.hpp"
+#include <romea_core_common/math/EulerAngles.hpp>
+#include <romea_core_common/math/Algorithm.hpp>
 
 //std
 #include <iterator>
