@@ -72,7 +72,6 @@ const PathCurve2D &PathSection2D::getCurve(const size_t & pointIndex)const
 void PathSection2D::computePathCurve_(const size_t & pointIndex) const
 {
   curves_[pointIndex].emplace();
-  std::cout <<"point index"<< pointIndex<<" "<<interpolationWindowLength_<< std::endl;
   Interval<double> curvilinearAbscissaInterval = computeCurvilinearAbscissaInterval_(pointIndex,interpolationWindowLength_);
   Interval<size_t> indexRange = findIntervalBoundIndexes(pointIndex,curvilinearAbscissaInterval);
   assert(curves_[pointIndex]->estimate(X_,Y_,curvilinearAbscissa_.data(),indexRange,curvilinearAbscissaInterval));

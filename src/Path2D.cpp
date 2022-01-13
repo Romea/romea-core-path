@@ -13,7 +13,6 @@ Path2D::Path2D(const WayPoints & wayPoints,
 {
   sections_.reserve(wayPoints.size());
 
-  std::cout << " cououc " << std::endl;
   for(const auto & sectionWayPoints : wayPoints)
   {
     if(sections_.empty())
@@ -40,8 +39,8 @@ Path2D::Path2D(const WayPoints & wayPoints,
     }
   }
 
-  std::cout << sections_.size() <<std::endl;
-  std::cout << sections_[0].size() <<std::endl;
+//  std::cout << sections_.size() <<std::endl;
+//  std::cout << sections_[0].size() <<std::endl;
 
 }
 
