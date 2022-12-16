@@ -1,14 +1,16 @@
-#ifndef romea_PathMatchedPoint2D_hpp
-#define romea_PathMatchedPoint2D_hpp
+#ifndef ROMEA_CORE_PATH_PATHMATCHEDPOINT2D_HPP_
+#define ROMEA_CORE_PATH_PATHMATCHEDPOINT2D_HPP_
 
-//romea
-#include "PathPosture2D.hpp"
-#include "PathFrenetPose2D.hpp"
+// std
+#include <ostream>
+
+// romea
+#include "romea_core_path/PathPosture2D.hpp"
+#include "romea_core_path/PathFrenetPose2D.hpp"
 
 namespace romea {
 
 struct PathMatchedPoint2D {
-
   PathMatchedPoint2D();
 
   PathPosture2D pathPosture;
@@ -23,7 +25,7 @@ std::ostream& operator<<(std::ostream & os, const PathMatchedPoint2D & matchedPo
 
 bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2);
 
-}//End of namespace romea
+}  // namespace romea
 
-#endif
+#endif // ROMEA_CORE_PATH_PATHMATCHEDPOINT2D_HPP_
 

@@ -1,7 +1,9 @@
-//romea
+// std
+#include <ostream>
+
+// romea
 #include "romea_core_path/PathMatchedPoint2D.hpp"
 #include <romea_core_common/math/EulerAngles.hpp>
-#include <iostream>
 
 namespace romea {
 
@@ -32,17 +34,15 @@ std::ostream& operator<<(std::ostream & os, const PathMatchedPoint2D & matchedPo
 //-----------------------------------------------------------------------------
 bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2)
 {
-  if(p1.sectionIndex<p2.sectionIndex)
+  if (p1.sectionIndex < p2.sectionIndex)
   {
-    return p1.frenetPose.curvilinearAbscissa<p2.frenetPose.curvilinearAbscissa;
-  }
-  else
-  {
-    return p1.frenetPose.curvilinearAbscissa>p2.frenetPose.curvilinearAbscissa;
+    return p1.frenetPose.curvilinearAbscissa < p2.frenetPose.curvilinearAbscissa;
+  } else {
+    return p1.frenetPose.curvilinearAbscissa > p2.frenetPose.curvilinearAbscissa;
   }
 }
 
 
-}//End of namespace romea
+}  // namespace romea
 
 

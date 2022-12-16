@@ -1,23 +1,22 @@
-#ifndef romea_PathCurve2D_hpp
-#define romea_PathCurve2D_hpp
+#ifndef ROMEA_CORE_PATH_PATHCURVE2D_HPP_
+#define ROMEA_CORE_PATH_PATHCURVE2D_HPP_
 
-//romea
+// std
+#include <vector>
+
+// romea
 #include "PathPosture2D.hpp"
 #include "PathFrenetPose2D.hpp"
 #include <romea_core_common/math/Interval.hpp>
-
-//std
-#include <vector>
 
 namespace romea {
 
 
 class PathCurve2D
 {
-
 public :
 
-    using Vector = std::vector<double,Eigen::aligned_allocator<double> > ;
+    using Vector = std::vector<double, Eigen::aligned_allocator<double> > ;
 
 public :
 
@@ -29,8 +28,8 @@ public :
                 const Interval<size_t> & indexInterval,
                 const Interval<double> & curvilinearAbscissaInterval);
 
-  bool findNearestCurvilinearAbscissa(const Eigen::Vector2d & vehiclePosition,
-                                      double & curvilinearAbscissa) const;
+  std::optional<double> findNearestCurvilinearAbscissa(
+    const Eigen::Vector2d & vehiclePosition) const;
 
   double computeX(const double & curvilinearAbscissa)const;
 
@@ -51,11 +50,8 @@ private :
 
   Interval<size_t> indexInterval_;
   Interval<double> curvilinearAbscissaInterval_;
-
-
 };
 
-}
+}  // namespace romea
 
-
-#endif
+#endif  // ROMEA_CORE_PATH_PATHCURVE2D_HPP_

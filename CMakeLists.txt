@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} SHARED
   src/PathMatching2D.cpp
   src/PathPosture2D.cpp
   src/PathSection2D.cpp
+  src/PathSectionMatching2D.cpp
   src/PathWayPoint2D.cpp
   )
 
@@ -74,11 +75,9 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
 
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 
+option(BUILD_TESTING "BUILD WITH TESTS" ON)
 
-#include_directories(include  ${EIGEN3_INCLUDE_DIRS})
-
-#option(BUILD_TESTS "BUILD WITH TESTS" OFF)
-#if(BUILD_TESTS)
-#  enable_testing()
-#  add_subdirectory(test)
-#endif(BUILD_TESTS)
+if(BUILD_TESTING)
+ enable_testing()
+ add_subdirectory(test)
+endif(BUILD_TESTING)

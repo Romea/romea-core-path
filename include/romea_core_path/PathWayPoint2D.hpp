@@ -1,10 +1,10 @@
-#ifndef romea_PathWayPoint2D_hpp
-#define romea_PathWayPoint2D_hpp
+#ifndef ROMEA_CORE_PATH_PATHWAYPOINT2D_HPP
+#define ROMEA_CORE_PATH_PATHWAYPOINT2D_HPP
 
 //Eigen
 #include <Eigen/Core>
 
-//std
+// std
 #include <iostream>
 
 namespace romea
@@ -13,16 +13,14 @@ namespace romea
 struct PathWayPoint2D
 {
    PathWayPoint2D();
-   PathWayPoint2D(const Eigen::Vector2d & position);
+   explicit PathWayPoint2D(const Eigen::Vector2d & position);
 
    Eigen::Vector2d position;
    double desired_speed;
 };
 
-
 std::ostream& operator<<(std::ostream & os, const PathWayPoint2D & wayPoint);
 
+}  // namespace romea
 
-}
-
-#endif
+#endif  // ROMEA_CORE_PATH_PATHWAYPOINT2D_HPP

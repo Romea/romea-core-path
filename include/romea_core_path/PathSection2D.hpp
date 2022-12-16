@@ -1,31 +1,31 @@
-#ifndef romea_PathSection2D_hpp
-#define romea_PathSection2D_hpp
+#ifndef ROMEA_CORE_PATH_PATHSECTION2D_HPP_
+#define ROMEA_CORE_PATH_PATHSECTION2D_HPP_
 
-//romea
+// std
+#include <atomic>
+#include <optional>
+#include <vector>
+
+// romea
 #include <romea_core_common/math/Interval.hpp>
 #include <romea_core_common/containers/Eigen/VectorOfEigenVector.hpp>
 #include <romea_core_common/containers/Eigen/DequeOfEigenVector.hpp>
-#include "CumulativeSum.hpp"
-#include "PathCurve2D.hpp"
-#include "PathWayPoint2D.hpp"
+#include "romea_core_path/CumulativeSum.hpp"
+#include "romea_core_path/PathCurve2D.hpp"
+#include "romea_core_path/PathWayPoint2D.hpp"
 
-//std
-#include <atomic>
-#include <optional>
 
 namespace romea {
 
 
-//TODO séparer la version static et online
+// TODO(jean) séparer la version static et online
 class PathSection2D
 {
 public:
-
-  using Vector = std::vector<double,Eigen::aligned_allocator<double> > ;
-  using CurvilinearAbscissa = CumulativeSum<double,Eigen::aligned_allocator<double>>;
+  using Vector = std::vector<double, Eigen::aligned_allocator<double> > ;
+  using CurvilinearAbscissa = CumulativeSum<double, Eigen::aligned_allocator<double>>;
 
 public:
-
   PathSection2D(const double & interpolationWindowLength,
                 const double & initialCurvilinearAbcissa = 0);
 
@@ -63,7 +63,6 @@ public:
   Interval<size_t> findIntervalBoundIndexes(const size_t & intervalCenterIndex,
                                             const Interval<double> & interval)const;
 
-
 private :
 
   void incrementCurvilinearAbscissa_();
@@ -84,9 +83,8 @@ private :
 
   double interpolationWindowLength_;
   double length_;
-
 };
 
-}
+}  // namespace romea
 
-#endif
+#endif  // ROMEA_CORE_PATH_PATHSECTION2D_HPP_

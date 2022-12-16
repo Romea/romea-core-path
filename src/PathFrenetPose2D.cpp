@@ -1,9 +1,10 @@
-//romea
+// std
+#include <ostream>
+
+// romea
 #include "romea_core_path/PathFrenetPose2D.hpp"
 #include <romea_core_common/math/EulerAngles.hpp>
 
-//std
-#include <iostream>
 
 namespace romea {
 
@@ -14,7 +15,6 @@ PathFrenetPose2D::PathFrenetPose2D() :
   courseDeviation(0.),
   covariance(Eigen::Matrix3d::Zero())
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -32,10 +32,11 @@ std::ostream& operator<<(std::ostream & os, const PathFrenetPose2D & frenetPose)
 //-----------------------------------------------------------------------------
 PathFrenetPose2D reverse(const PathFrenetPose2D & frenetPose)
 {
-   PathFrenetPose2D reversedFrenetPose=frenetPose;
-   reversedFrenetPose.lateralDeviation=-frenetPose.lateralDeviation;
-   reversedFrenetPose.courseDeviation =-romea::betweenMinusPiAndPi(frenetPose.courseDeviation+M_PI);
+   PathFrenetPose2D reversedFrenetPose = frenetPose;
+   reversedFrenetPose.lateralDeviation = -frenetPose.lateralDeviation;
+   reversedFrenetPose.courseDeviation  = -romea::betweenMinusPiAndPi(
+    frenetPose.courseDeviation+M_PI);
    return reversedFrenetPose;
 }
 
-}
+}  // namespace romea
