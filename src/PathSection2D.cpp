@@ -1,14 +1,34 @@
-#include "romea_core_path/PathSection2D.hpp"
+// Copyright 2022 INRAE, French National Research Institute for Agriculture, Food and Environment
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// std
 #include <iostream>
 #include <algorithm>
+#include <vector>
+
+// romea
+#include "romea_core_path/PathSection2D.hpp"
 
 
-namespace romea {
+namespace romea
+{
 
 //-----------------------------------------------------------------------------
-PathSection2D::PathSection2D(const double &interpolationWindowLength,
-                             const double & initialCurvilinearAbcissa):
-  X_(),
+PathSection2D::PathSection2D(
+  const double & interpolationWindowLength,
+  const double & initialCurvilinearAbcissa)
+: X_(),
   Y_(),
   curvilinearAbscissa_(initialCurvilinearAbcissa),
   curves_(),
@@ -30,9 +50,8 @@ void PathSection2D::addWayPoint(const PathWayPoint2D & wayPoint)
 //-----------------------------------------------------------------------------
 void PathSection2D::addWayPoints(const std::vector<PathWayPoint2D> & wayPoints)
 {
-  reserve(size()+wayPoints.size());
-  for (const auto & wayPoint : wayPoints)
-  {
+  reserve(size() + wayPoints.size());
+  for (const auto & wayPoint : wayPoints) {
     addWayPoint(wayPoint);
   }
 }
@@ -40,23 +59,21 @@ void PathSection2D::addWayPoints(const std::vector<PathWayPoint2D> & wayPoints)
 //-----------------------------------------------------------------------------
 void PathSection2D::incrementCurvilinearAbscissa_()
 {
-  if (X_.size() != curvilinearAbscissa_.size())
-  {
+  if (X_.size() != curvilinearAbscissa_.size()) {
     size_t n = curvilinearAbscissa_.size();
-    double dx = X_[n]-X_[n-1];
-    double dy = Y_[n]-Y_[n-1];
-    double ds = std::sqrt(dx*dx+dy*dy);
+    double dx = X_[n] - X_[n - 1];
+    double dy = Y_[n] - Y_[n - 1];
+    double ds = std::sqrt(dx * dx + dy * dy);
     //    std::cout << ds <<" "<< dx <<" "<<dy << std::endl;
     curvilinearAbscissa_.increment(ds);
-    length_+=ds;
+    length_ += ds;
   }
 }
 
 //-----------------------------------------------------------------------------
-const PathCurve2D &PathSection2D::getCurve(const size_t & pointIndex)const
+const PathCurve2D & PathSection2D::getCurve(const size_t & pointIndex)const
 {
-  if ( !curves_[pointIndex].has_value())
-  {
+  if (!curves_[pointIndex].has_value()) {
     computePathCurve_(pointIndex);
   }
 
@@ -73,11 +90,13 @@ void PathSection2D::computePathCurve_(const size_t & pointIndex) const
 
   Interval<size_t> indexRange = findIntervalBoundIndexes(pointIndex, curvilinearAbscissaInterval);
 
-  assert(curves_[pointIndex]->estimate(X_ ,
-                                       Y_,
-                                       curvilinearAbscissa_.data(),
-                                       indexRange,
-                                       curvilinearAbscissaInterval));
+  assert(
+    curves_[pointIndex]->estimate(
+      X_,
+      Y_,
+      curvilinearAbscissa_.data(),
+      indexRange,
+      curvilinearAbscissaInterval));
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +122,7 @@ const PathSection2D::Vector & PathSection2D::getY()const
 }
 
 //-----------------------------------------------------------------------------
-const PathSection2D::CurvilinearAbscissa &PathSection2D::getCurvilinearAbscissa()const
+const PathSection2D::CurvilinearAbscissa & PathSection2D::getCurvilinearAbscissa()const
 {
   return curvilinearAbscissa_;
 }
@@ -142,8 +161,7 @@ void PathSection2D::clear()
 size_t PathSection2D::findIndex(const double & value, const size_t & startSearchIndex) const
 {
   size_t n = startSearchIndex;
-  while (n < curvilinearAbscissa_.size()-1 && curvilinearAbscissa_[n] < value)
-  {
+  while (n < curvilinearAbscissa_.size() - 1 && curvilinearAbscissa_[n] < value) {
     n++;
   }
   return n;
@@ -160,21 +178,24 @@ size_t PathSection2D::findIndex(const double & value) const
 Interval<double> PathSection2D::computeCurvilinearAbscissaInterval_(
   const size_t & intervalCenterIndex, const double & intervalWidth)const
 {
-  return Interval<double>(curvilinearAbscissa_[intervalCenterIndex]-intervalWidth/2.,
-                          curvilinearAbscissa_[intervalCenterIndex]+intervalWidth/2.);
+  return Interval<double>(
+    curvilinearAbscissa_[intervalCenterIndex] - intervalWidth / 2.,
+    curvilinearAbscissa_[intervalCenterIndex] + intervalWidth / 2.);
 }
 
 //-----------------------------------------------------------------------------
-Interval<size_t> PathSection2D::findIntervalBoundIndexes(const size_t & intervalCenterIndex,
-                                                         const double & intervalWidth) const
+Interval<size_t> PathSection2D::findIntervalBoundIndexes(
+  const size_t & intervalCenterIndex,
+  const double & intervalWidth) const
 {
   auto interval = computeCurvilinearAbscissaInterval_(intervalCenterIndex, intervalWidth);
   return findIntervalBoundIndexes(intervalCenterIndex, interval);
 }
 
 //-----------------------------------------------------------------------------
-Interval<size_t> PathSection2D::findIntervalBoundIndexes(const size_t & intervalCenterIndex,
-                                                         const Interval<double> & interval)const
+Interval<size_t> PathSection2D::findIntervalBoundIndexes(
+  const size_t & intervalCenterIndex,
+  const Interval<double> & interval)const
 {
 
   //    std::cout << " intervalCenterIndex " << 0 <<" "<< intervalCenterIndex << " "<< cumsum_.size()<<std::endl;
@@ -185,14 +206,14 @@ Interval<size_t> PathSection2D::findIntervalBoundIndexes(const size_t & interval
   size_t minimalIndex = intervalCenterIndex;
   size_t maximalIndex = intervalCenterIndex;
 
-  while (minimalIndex !=0 &&
-         interval.inside(curvilinearAbscissa_[minimalIndex]))
+  while (minimalIndex != 0 &&
+    interval.inside(curvilinearAbscissa_[minimalIndex]))
   {
     minimalIndex--;
   }
 
-  while (maximalIndex  != curvilinearAbscissa_.size()-1 &&
-         interval.inside(curvilinearAbscissa_[maximalIndex]))
+  while (maximalIndex != curvilinearAbscissa_.size() - 1 &&
+    interval.inside(curvilinearAbscissa_[maximalIndex]))
   {
     maximalIndex++;
   }

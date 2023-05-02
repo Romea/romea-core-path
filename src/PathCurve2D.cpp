@@ -1,3 +1,16 @@
+// Copyright 2022 INRAE, French National Research Institute for Agriculture, Food and Environment
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Eigen
 #include <unsupported/Eigen/Polynomials>
@@ -8,15 +21,18 @@
 // std
 #include <cassert>
 #include <iostream>
+#include <limits>
 
 // romea
 #include "romea_core_path/PathCurve2D.hpp"
 
-namespace {
+namespace
+{
 
-inline bool computeSecondDegreePolynomialRegressionLight(const Eigen::ArrayXd &X,
-                                                         const Eigen::ArrayXd &Y,
-                                                         Eigen::Array3d & polynomCoefficient)
+inline bool computeSecondDegreePolynomialRegressionLight(
+  const Eigen::ArrayXd & X,
+  const Eigen::ArrayXd & Y,
+  Eigen::Array3d & polynomCoefficient)
 {
   double ide = 0;
   double MCx1 = 0, MCx2 = 0, MCx3 = 0, MCx4 = 0;
@@ -24,18 +40,17 @@ inline bool computeSecondDegreePolynomialRegressionLight(const Eigen::ArrayXd &X
 
   double Xoff = X[0];
 
-  for (int i=0; i < X.size();i++)
-  {
+  for (int i = 0; i < X.size(); i++) {
     double Xtemp = X[i] - Xoff;
     double Ytemp = Y[i];
-    ide   = ide+1;
-    MCx1  = MCx1 +Xtemp;
-    MCx2  = MCx2 +Xtemp*Xtemp;
-    MCx3  = MCx3 +Xtemp*Xtemp*Xtemp;
-    MCx4  = MCx4 +Xtemp*Xtemp*Xtemp*Xtemp;
-    MCy1  = MCy1 +Ytemp;
-    MCxy  = MCxy +Xtemp*Ytemp;
-    MCx2y = MCx2y+Xtemp*Xtemp*Ytemp;
+    ide = ide + 1;
+    MCx1 = MCx1 + Xtemp;
+    MCx2 = MCx2 + Xtemp * Xtemp;
+    MCx3 = MCx3 + Xtemp * Xtemp * Xtemp;
+    MCx4 = MCx4 + Xtemp * Xtemp * Xtemp * Xtemp;
+    MCy1 = MCy1 + Ytemp;
+    MCxy = MCxy + Xtemp * Ytemp;
+    MCx2y = MCx2y + Xtemp * Xtemp * Ytemp;
   }
 
   Eigen::Matrix3d transform;
@@ -51,50 +66,54 @@ inline bool computeSecondDegreePolynomialRegressionLight(const Eigen::ArrayXd &X
   bool success = true;
   Eigen::Matrix3d inverseTransform;
   transform.computeInverseWithCheck(inverseTransform, success);
-  if (success == false)
-  {
+  if (success == false) {
     std::cout << "Matrix not intervertible" << std::endl;
     return success;
   }
 
   polynomCoefficient = inverseTransform * F;
   polynomCoefficient(1) = polynomCoefficient(1) -
-                          2*polynomCoefficient(2)*Xoff;
+    2 * polynomCoefficient(2) * Xoff;
   polynomCoefficient(0) = polynomCoefficient(0) -
-                          polynomCoefficient(1)*Xoff -
-                          polynomCoefficient(2)*Xoff*Xoff;
+    polynomCoefficient(1) * Xoff -
+    polynomCoefficient(2) * Xoff * Xoff;
   return success;
 }
 
 }  // namespace
 
-namespace romea {
+namespace romea
+{
 
 //-----------------------------------------------------------------------------
-PathCurve2D::PathCurve2D():
-  fxPolynomCoefficient_(Eigen::Array3d::Zero()),
+PathCurve2D::PathCurve2D()
+: fxPolynomCoefficient_(Eigen::Array3d::Zero()),
   fyPolynomCoefficient_(Eigen::Array3d::Zero())
 {
 }
 
 //-----------------------------------------------------------------------------
-bool PathCurve2D::estimate(const Vector & X,
-                           const Vector & Y,
-                           const Vector & S,
-                           const Interval<size_t> &indexInterval,
-                           const Interval<double> & curvilinearAbscissaInterval)
+bool PathCurve2D::estimate(
+  const Vector & X,
+  const Vector & Y,
+  const Vector & S,
+  const Interval<size_t> & indexInterval,
+  const Interval<double> & curvilinearAbscissaInterval)
 {
   assert(indexInterval.width() > 2);
 
   indexInterval_ = indexInterval;
   curvilinearAbscissaInterval_ = curvilinearAbscissaInterval;
 
-  Eigen::Map<const Eigen::ArrayXd> Xmap(X.data()+indexInterval.lower(), indexInterval.width()+1);
-  Eigen::Map<const Eigen::ArrayXd> Ymap(Y.data()+indexInterval.lower(), indexInterval.width()+1);
-  Eigen::Map<const Eigen::ArrayXd> Smap(S.data()+indexInterval.lower(), indexInterval.width()+1);
+  Eigen::Map<const Eigen::ArrayXd> Xmap(X.data() + indexInterval.lower(),
+    indexInterval.width() + 1);
+  Eigen::Map<const Eigen::ArrayXd> Ymap(Y.data() + indexInterval.lower(),
+    indexInterval.width() + 1);
+  Eigen::Map<const Eigen::ArrayXd> Smap(S.data() + indexInterval.lower(),
+    indexInterval.width() + 1);
 
-  return (computeSecondDegreePolynomialRegressionLight(Smap, Xmap, fxPolynomCoefficient_) &&
-          computeSecondDegreePolynomialRegressionLight(Smap, Ymap, fyPolynomCoefficient_) );
+  return computeSecondDegreePolynomialRegressionLight(Smap, Xmap, fxPolynomCoefficient_) &&
+         computeSecondDegreePolynomialRegressionLight(Smap, Ymap, fyPolynomCoefficient_);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,10 +144,11 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
 
   // d(r^2) / dt = d t^3 + c t^2 + b t + a = 0
   Eigen::Vector4d coeff;
-  coeff[0] = 2*(cx*cx+cy*cy);
-  coeff[1] = 3*(bx*cx+by*cy);
-  coeff[2] = bx*bx+by*by+2*(ax*cx+ay*cy-cx*vehiclePosition.x()-cy*vehiclePosition.y());
-  coeff[3] = ax*bx+ay*by-bx*vehiclePosition.x()-by*vehiclePosition.y();
+  coeff[0] = 2 * (cx * cx + cy * cy);
+  coeff[1] = 3 * (bx * cx + by * cy);
+  coeff[2] = bx * bx + by * by + 2 *
+    (ax * cx + ay * cy - cx * vehiclePosition.x() - cy * vehiclePosition.y());
+  coeff[3] = ax * bx + ay * by - bx * vehiclePosition.x() - by * vehiclePosition.y();
 
   //  /// Using the Eigen library is very slow
   //    Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
@@ -138,24 +158,21 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
 
   // Using gsl
   double root_0, root_1 = -100, root_2 = -100;
-  int nb_roots = gsl_poly_solve_cubic(coeff[1]/coeff[0],
-      coeff[2]/coeff[0],
-      coeff[3]/coeff[0],
-      &root_0,
-      &root_1,
-      &root_2);
+  int nb_roots = gsl_poly_solve_cubic(
+    coeff[1] / coeff[0],
+    coeff[2] / coeff[0],
+    coeff[3] / coeff[0],
+    &root_0,
+    &root_1,
+    &root_2);
 
-  if (nb_roots == 1)
-  {
-    if (curvilinearAbscissaInterval_.inside(root_0))
-    {
+  if (nb_roots == 1) {
+    if (curvilinearAbscissaInterval_.inside(root_0)) {
       return root_0;
     }
   } else if (nb_roots == 3) {
-    for (double root : {root_0, root_1, root_2})
-    {
-      if (curvilinearAbscissaInterval_.inside(root))
-      {
+    for (double root : {root_0, root_1, root_2}) {
+      if (curvilinearAbscissaInterval_.inside(root)) {
         return root;
       }
     }
@@ -168,24 +185,25 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
 //-----------------------------------------------------------------------------
 double PathCurve2D::computeX(const double & curvilinearAbscissa)const
 {
-  return fxPolynomCoefficient_[2]*std::pow(curvilinearAbscissa, 2)+
-      fxPolynomCoefficient_[1]*curvilinearAbscissa+
-      fxPolynomCoefficient_[0];
+  return fxPolynomCoefficient_[2] * std::pow(curvilinearAbscissa, 2) +
+         fxPolynomCoefficient_[1] * curvilinearAbscissa +
+         fxPolynomCoefficient_[0];
 }
 
 //-----------------------------------------------------------------------------
 double PathCurve2D::computeY(const double & curvilinearAbscissa)const
 {
-  return fyPolynomCoefficient_[2]*std::pow(curvilinearAbscissa, 2) +
-      fyPolynomCoefficient_[1]*curvilinearAbscissa +
-      fyPolynomCoefficient_[0];
+  return fyPolynomCoefficient_[2] * std::pow(curvilinearAbscissa, 2) +
+         fyPolynomCoefficient_[1] * curvilinearAbscissa +
+         fyPolynomCoefficient_[0];
 }
 
 //-----------------------------------------------------------------------------
 double PathCurve2D::computeTangent(const double & curvilinearAbscissa)const
 {
-  return std::atan2((2*fyPolynomCoefficient_[2]*curvilinearAbscissa +fyPolynomCoefficient_[1]) ,
-      (2*fxPolynomCoefficient_[2]*curvilinearAbscissa +fxPolynomCoefficient_[1]));
+  return std::atan2(
+    (2 * fyPolynomCoefficient_[2] * curvilinearAbscissa + fyPolynomCoefficient_[1]),
+    (2 * fxPolynomCoefficient_[2] * curvilinearAbscissa + fxPolynomCoefficient_[1]));
 }
 
 //-----------------------------------------------------------------------------
@@ -197,19 +215,18 @@ double PathCurve2D::computeCurvature(const double & curvilinearAbscissa)const
   double cx = fxPolynomCoefficient_[2];
   double bx = fxPolynomCoefficient_[1];
 
-  double Xdot         = bx+(2*cx* curvilinearAbscissa);
-  double Ydot         = by+(2*cy* curvilinearAbscissa);
-  double Xdotdot      = 2*cx;
-  double Ydotdot      = 2*cy;
-  double denominator = Xdot*Ydotdot-Ydot*Xdotdot;
+  double Xdot = bx + (2 * cx * curvilinearAbscissa);
+  double Ydot = by + (2 * cy * curvilinearAbscissa);
+  double Xdotdot = 2 * cx;
+  double Ydotdot = 2 * cy;
+  double denominator = Xdot * Ydotdot - Ydot * Xdotdot;
 
-  if (std::abs(denominator) <= std::numeric_limits<double>::epsilon())
-  {
+  if (std::abs(denominator) <= std::numeric_limits<double>::epsilon()) {
     return 0;
   } else {
-    double tempo = sqrt(Xdot*Xdot+Ydot*Ydot);
-    double radius = (tempo*tempo*tempo)/denominator;
-    return 1/radius;
+    double tempo = sqrt(Xdot * Xdot + Ydot * Ydot);
+    double radius = (tempo * tempo * tempo) / denominator;
+    return 1 / radius;
   }
 }
 
