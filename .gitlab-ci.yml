@@ -1,7 +1,7 @@
 before_script:
   # Install ssh-agent if not already installed, it is required by Docker.
   - "apt-get -qq update -y"
-  - "apt-get -qq install git build-essential openssh-client python3-vcstool sudo -y"
+  - "apt-get -qq install git build-essential openssh-client python3-vcstool libgsl-dev sudo -y"
   - if [[ "$ROS_DISTRO" == "noetic" ]]; then apt-get -qq install python3-catkin-tools sudo -y; fi
   # Run ssh-agent (inside the build environment)
   - eval $(ssh-agent -s)
