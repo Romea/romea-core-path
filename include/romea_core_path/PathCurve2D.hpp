@@ -16,6 +16,7 @@
 #define ROMEA_CORE_PATH__PATHCURVE2D_HPP_
 
 // std
+#include <optional>
 #include <vector>
 
 // romea
