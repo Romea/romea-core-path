@@ -197,11 +197,13 @@ Interval<size_t> PathSection2D::findIntervalBoundIndexes(
   const size_t & intervalCenterIndex,
   const Interval<double> & interval)const
 {
-
-  //    std::cout << " intervalCenterIndex " << 0 <<" "<< intervalCenterIndex << " "<< cumsum_.size()<<std::endl;
-  //    std::cout << "is inside interval" << cumsum_[0] <<" "<<cumsum_[intervalCenterIndex]<<"  "<< cumsum_.back() <<std::endl;
-  //      std::cout << "is inside interval" <<interval.lower() <<" "<<cumsum_[intervalCenterIndex]<<"  "<< interval.upper() <<std::endl;
-  //assert(interval.inside(cumsum_[intervalCenterIndex]));
+  // std::cout << " intervalCenterIndex " << 0 << " " <<
+  //   intervalCenterIndex << " " << cumsum_.size() << std::endl;
+  // std::cout << "is inside interval" << cumsum_[0] << " " << cumsum_[intervalCenterIndex] <<
+  //   "  " << cumsum_.back() << std::endl;
+  // std::cout << "is inside interval" << interval.lower() << " " <<
+  //   cumsum_[intervalCenterIndex] << "  " << interval.upper() << std::endl;
+  //  assert(interval.inside(cumsum_[intervalCenterIndex]));
 
   size_t minimalIndex = intervalCenterIndex;
   size_t maximalIndex = intervalCenterIndex;

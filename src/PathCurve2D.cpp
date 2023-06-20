@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 // Eigen
 #include <unsupported/Eigen/Polynomials>
 
-// gsl
-#include <gsl/gsl_poly.h>
-
 // std
+#include <optional>
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <limits>
+
+
+// gsl
+#include "gsl/gsl_poly.h"
 
 // romea
 #include "romea_core_path/PathCurve2D.hpp"

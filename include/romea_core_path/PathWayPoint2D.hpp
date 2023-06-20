@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP
-#define ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP
+#ifndef ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP_
+#define ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP_
 
 // Eigen
 #include <Eigen/Core>
@@ -37,4 +37,4 @@ std::ostream & operator<<(std::ostream & os, const PathWayPoint2D & wayPoint);
 
 }  // namespace romea
 
-#endif  // ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP
+#endif  // ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP_

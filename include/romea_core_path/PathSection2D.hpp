@@ -16,8 +16,8 @@
 #define ROMEA_CORE_PATH__PATHSECTION2D_HPP_
 
 // std
-#include <atomic>
 #include <optional>
+#include <atomic>
 #include <vector>
 
 // romea

@@ -16,8 +16,8 @@
 #define ROMEA_CORE_PATH__PATHSECTIONMATCHING2D_HPP_
 
 // std
-#include <vector>
 #include <optional>
+#include <vector>
 
 // romea
 #include "romea_core_path/Path2D.hpp"

@@ -43,4 +43,4 @@ bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & 
 
 }  // namespace romea
 
-#endif // ROMEA_CORE_PATH__PATHMATCHEDPOINT2D_HPP_
+#endif  // ROMEA_CORE_PATH__PATHMATCHEDPOINT2D_HPP_

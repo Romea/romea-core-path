@@ -16,8 +16,8 @@
 #define ROMEA_CORE_PATH__PATHMATCHING2D_HPP_
 
 // std
-#include <vector>
 #include <optional>
+#include <vector>
 
 // romea
 #include "romea_core_path/Path2D.hpp"
@@ -62,4 +62,4 @@ size_t bestMatchedPointIndex(
 
 }  // namespace romea
 
-#endif  // ROMEA_CORE_PATH_PATHMATCHING2D_HPP_
+#endif  // ROMEA_CORE_PATH__PATHMATCHING2D_HPP_
