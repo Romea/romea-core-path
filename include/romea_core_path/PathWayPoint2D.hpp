@@ -27,7 +27,9 @@ namespace romea
 struct PathWayPoint2D
 {
   PathWayPoint2D();
-  explicit PathWayPoint2D(const Eigen::Vector2d & position);
+  PathWayPoint2D(
+    const Eigen::Vector2d & position,
+    double desired_speed = std::numeric_limits<double>::quiet_NaN());
 
   Eigen::Vector2d position;
   double desired_speed;

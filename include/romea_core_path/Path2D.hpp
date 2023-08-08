@@ -15,11 +15,11 @@
 #ifndef ROMEA_CORE_PATH__PATH2D_HPP_
 #define ROMEA_CORE_PATH__PATH2D_HPP_
 
-// std
-#include <vector>
+#include <map>
 
-#include "PathSection2D.hpp"
 #include "CumulativeSum.hpp"
+#include "PathAnnotation.hpp"
+#include "PathSection2D.hpp"
 
 namespace romea
 {
@@ -29,25 +29,40 @@ class Path2D
 public:
   using WayPoints = std::vector<std::vector<PathWayPoint2D>>;
   using CurvilinearAbscissa = CumulativeSum<double, Eigen::aligned_allocator<double>>;
+  using Sections = std::vector<PathSection2D>;
+  using Annotations = std::multimap<std::size_t, PathAnnotation>;
+  using AnnotationList = std::vector<PathAnnotation>;
 
 public:
   Path2D(const WayPoints & wayPoints, const double & interpolationWindowLength);
+  Path2D(
+    const WayPoints & wayPoints, const double & interpolationWindowLength,
+    const Annotations & annotations);
 
-  const PathSection2D & getSection(const size_t & sectionIndex)const;
+  const PathSection2D & getSection(const size_t & sectionIndex) const;
 
-  const CurvilinearAbscissa & getCurvilinearAbscissa()const;
+  const CurvilinearAbscissa & getCurvilinearAbscissa() const;
 
-  const double & getLength()const;
+  double getLength() const;
 
-  size_t size()const;
+  size_t size() const;
+
+  PathSection2D & addEmptySection();
+
+  const Sections & getSections() const { return sections_; }
+
+  void setAnnotations(const Annotations & annotations);
+
+  const Annotations & getAnnotations() const { return annotations_; }
 
 private:
-  std::vector<PathSection2D> sections_;
+  Sections sections_;
   CurvilinearAbscissa curvilinearAbscissa_;
   double length_;
+  double interpolationWindowLength_;
+  Annotations annotations_;
 };
 
 }  // namespace romea
-
 
 #endif  // ROMEA_CORE_PATH__PATH2D_HPP_

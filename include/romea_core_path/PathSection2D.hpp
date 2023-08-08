@@ -43,7 +43,8 @@ public:
 public:
   PathSection2D(
     const double & interpolationWindowLength,
-    const double & initialCurvilinearAbcissa = 0);
+    const double & initialCurvilinearAbcissa = 0,
+    size_t initialPointIndex = 0);
 
   void addWayPoint(const PathWayPoint2D & wayPoint);
 
@@ -60,6 +61,8 @@ public:
   const Vector & getSpeeds() const;
 
   const double & getLength()const;
+
+  size_t getInitialPointIndex()const;
 
   void reserve(size_t n);
 
@@ -99,6 +102,7 @@ private:
   mutable std::vector<std::optional<PathCurve2D>> curves_;
   Vector speeds_;
 
+  size_t initial_point_index_;
   double interpolationWindowLength_;
   double length_;
 };

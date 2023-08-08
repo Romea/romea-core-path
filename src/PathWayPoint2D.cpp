@@ -28,9 +28,9 @@ PathWayPoint2D::PathWayPoint2D()
 }
 
 //-----------------------------------------------------------------------------
-PathWayPoint2D::PathWayPoint2D(const Eigen::Vector2d & position)
-: position(position),
-  desired_speed(std::numeric_limits<double>::quiet_NaN())
+PathWayPoint2D::PathWayPoint2D(const Eigen::Vector2d & position, double desired_speed):
+  position(position),
+  desired_speed(desired_speed)
 {
 }
 

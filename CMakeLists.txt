@@ -8,6 +8,9 @@ project(
   LANGUAGES CXX)
 
 find_package(romea_core_common REQUIRED)
+find_package(GSL REQUIRED)
+find_package(BLAS REQUIRED)
+find_package(nlohmann_json 3.7 REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/Path2D.cpp
@@ -19,6 +22,8 @@ add_library(${PROJECT_NAME} SHARED
   src/PathSection2D.cpp
   src/PathSectionMatching2D.cpp
   src/PathWayPoint2D.cpp
+  src/PathFile.cpp
+  src/PathAnnotation.cpp
   )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -36,7 +41,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   romea_core_common::romea_core_common)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  gsl blas)
+  GSL::gsl ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json)
 
 include(GNUInstallDirs)
 

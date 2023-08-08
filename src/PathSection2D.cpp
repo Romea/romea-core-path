@@ -27,11 +27,13 @@ namespace romea
 //-----------------------------------------------------------------------------
 PathSection2D::PathSection2D(
   const double & interpolationWindowLength,
-  const double & initialCurvilinearAbcissa)
+  const double & initialCurvilinearAbcissa,
+  size_t initialPointIndex)
 : X_(),
   Y_(),
   curvilinearAbscissa_(initialCurvilinearAbcissa),
   curves_(),
+  initial_point_index_(initialPointIndex),
   interpolationWindowLength_(interpolationWindowLength),
   length_(0)
 {
@@ -138,6 +140,11 @@ const PathSection2D::Vector & PathSection2D::getSpeeds() const
 const double & PathSection2D::getLength()const
 {
   return length_;
+}
+
+size_t PathSection2D::getInitialPointIndex()const
+{
+  return initial_point_index_;
 }
 
 //-----------------------------------------------------------------------------
