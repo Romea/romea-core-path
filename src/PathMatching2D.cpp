@@ -118,30 +118,33 @@ void match_impl(
   romea::Interval<size_t> rangeIndex = section.
     findIntervalBoundIndexes(curveIndex, curvilinearAbscissaResearchInterval);
 
-  if (rangeIndex.lower() == 0 && sectionIndex != 0 &&
-    curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
-  {
-    const auto & previousSection = path.getSection(sectionIndex - 1);
-    const size_t previousCurveIndex = path.getSection(sectionIndex - 1).size() - 1;
+  // look at the previous section if the matching is at the begining of this one
+  // if (rangeIndex.lower() == 0 && sectionIndex != 0 &&
+  //   curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
+  // {
+  //   const auto & previousSection = path.getSection(sectionIndex - 1);
+  //   const size_t previousCurveIndex = path.getSection(sectionIndex - 1).size() - 1;
+  //
+  //   auto previousMatchedPoint = match(
+  //     previousSection,
+  //     vehiclePose,
+  //     vehicleSpeed,
+  //     previousCurveIndex,
+  //     curvilinearAbscissaResearchInterval,
+  //     time_horizon,
+  //     researchRadius);
+  //
+  //   if (previousMatchedPoint.has_value()) {
+  //     previousMatchedPoint->sectionIndex = sectionIndex - 1;
+  //     matchedPoints.push_front(*previousMatchedPoint);
+  //   }
+  // }
 
-    auto previousMatchedPoint = match(
-      previousSection,
-      vehiclePose,
-      vehicleSpeed,
-      previousCurveIndex,
-      curvilinearAbscissaResearchInterval,
-      time_horizon,
-      researchRadius);
+  // if (rangeIndex.upper() == section.size() - 1 && sectionIndex != path.size() - 1 &&
+  //   curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue()) {
 
-    if (previousMatchedPoint.has_value()) {
-      previousMatchedPoint->sectionIndex = sectionIndex - 1;
-      matchedPoints.push_front(*previousMatchedPoint);
-    }
-  }
-
-  if (rangeIndex.upper() == section.size() - 1 && sectionIndex != path.size() - 1 &&
-    curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue())
-  {
+  // Do not look at next section if not at the end of current section
+  if(curveIndex >= section.size() - 1 && sectionIndex != path.size() - 1) {
     const auto & nextSection = path.getSection(sectionIndex + 1);
 
     auto nextMatchedPoint = match(
@@ -154,6 +157,7 @@ void match_impl(
       researchRadius);
 
     if (nextMatchedPoint.has_value()) {
+      matchedPoints.clear(); // only keep the next matched point
       nextMatchedPoint->sectionIndex = sectionIndex + 1;
       matchedPoints.push_back(*nextMatchedPoint);
     }
