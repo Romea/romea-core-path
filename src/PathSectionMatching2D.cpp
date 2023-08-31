@@ -39,7 +39,7 @@ size_t findNearestCurveIndex(
   const auto X = section.getX();
   const auto Y = section.getY();
 
-  size_t nearestPointIndex = indexRange.upper();
+  size_t nearestPointIndex = section.size();
   double minimalDistance = researchRadius;
 
   for (size_t n = indexRange.lower(); n <= indexRange.upper(); ++n) {
