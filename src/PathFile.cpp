@@ -173,7 +173,8 @@ void PathFile::loadWayPointsV2_(const nlohmann::json & data)
       throw std::runtime_error("The first section index of the traj must be 0");
     }
 
-    Eigen::Vector2d pos{point[col_indexes["x"]], point[col_indexes["y"]]};
+    Eigen::Vector2d pos;
+    pos << point[col_indexes["x"]], point[col_indexes["y"]];
     if (has_speed) {
       way_points_.back().emplace_back(pos, point[col_indexes["speed"]]);
     } else {
