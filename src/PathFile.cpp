@@ -208,7 +208,9 @@ void PathFile::loadAnnotations(const nlohmann::json & data)
   const auto & values = data["annotations"];
   for (const auto & a : values) {
     if (a.contains("point_index")) {
-      annotations_.insert({a["point_index"].get<std::size_t>(), a});
+      annotations_.insert(
+        std::pair<size_t, PathAnnotation>(
+          a["point_index"].get<std::size_t>(), a));
     }
   }
 }
