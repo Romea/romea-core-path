@@ -23,16 +23,14 @@ add_library(${PROJECT_NAME} SHARED
   src/PathSectionMatching2D.cpp
   src/PathWayPoint2D.cpp
   src/PathFile.cpp
-  src/PathAnnotation.cpp
-  )
+  src/PathAnnotation.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-  ${romea_core_common_INCLUDE_DIRS}
-  )
+  ${romea_core_common_INCLUDE_DIRS})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   -Wall -Wextra -O3 -std=c++17)
@@ -83,6 +81,6 @@ set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 option(BUILD_TESTING "BUILD WITH TESTS" ON)
 
 if(BUILD_TESTING)
- enable_testing()
- add_subdirectory(test)
-endif(BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(test)
+endif()

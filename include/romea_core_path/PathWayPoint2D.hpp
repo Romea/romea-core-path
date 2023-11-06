@@ -20,6 +20,7 @@
 
 // std
 #include <iostream>
+#include <limits>
 
 namespace romea
 {

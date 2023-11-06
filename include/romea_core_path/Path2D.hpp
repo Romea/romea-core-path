@@ -15,8 +15,11 @@
 #ifndef ROMEA_CORE_PATH__PATH2D_HPP_
 #define ROMEA_CORE_PATH__PATH2D_HPP_
 
+// std
 #include <map>
+#include <vector>
 
+// romea
 #include "CumulativeSum.hpp"
 #include "PathAnnotation.hpp"
 #include "PathSection2D.hpp"
@@ -34,9 +37,13 @@ public:
   using AnnotationList = std::vector<PathAnnotation>;
 
 public:
-  Path2D(const WayPoints & wayPoints, const double & interpolationWindowLength);
   Path2D(
-    const WayPoints & wayPoints, const double & interpolationWindowLength,
+    const WayPoints & wayPoints,
+    const double & interpolationWindowLength);
+
+  Path2D(
+    const WayPoints & wayPoints,
+    const double & interpolationWindowLength,
     const Annotations & annotations);
 
   const PathSection2D & getSection(const size_t & sectionIndex) const;
@@ -49,11 +56,11 @@ public:
 
   PathSection2D & addEmptySection();
 
-  const Sections & getSections() const { return sections_; }
+  const Sections & getSections() const {return sections_;}
 
   void setAnnotations(const Annotations & annotations);
 
-  const Annotations & getAnnotations() const { return annotations_; }
+  const Annotations & getAnnotations() const {return annotations_;}
 
 private:
   Sections sections_;

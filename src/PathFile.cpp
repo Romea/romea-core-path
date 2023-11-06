@@ -1,12 +1,29 @@
-//romea
-#include "romea_core_path/PathFile.hpp"
+// Copyright 2022 INRAE, French National Research Institute for Agriculture, Food and Environment
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+// std
 #include <cstdio>
 #include <exception>
-#include <nlohmann/json.hpp>
-#include <romea_core_common/geodesy/ENUConverter.hpp>
 #include <stdexcept>
 #include <string>
+
+// romea
+#include "romea_core_path/PathFile.hpp"
+#include <romea_core_common/geodesy/ENUConverter.hpp>
+
+// json
+#include "nlohmann/json.hpp"
 
 static bool endsWith(std::string_view str, std::string_view suffix)
 {
@@ -197,15 +214,15 @@ void PathFile::loadAnnotations(const nlohmann::json & data)
 }
 
 //-----------------------------------------------------------------------------
-const std::vector<std::vector<PathWayPoint2D> > & PathFile::getWayPoints() const
+const std::vector<std::vector<PathWayPoint2D>> & PathFile::getWayPoints() const
 {
   return way_points_;
 }
 
 //-----------------------------------------------------------------------------
-const std::string & PathFile::getCoordinateSystemDescription() const { return coordinate_system_; }
+const std::string & PathFile::getCoordinateSystemDescription() const {return coordinate_system_;}
 
 //-----------------------------------------------------------------------------
-const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const { return world_to_path_; }
+const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const {return world_to_path_;}
 
 }  // namespace romea

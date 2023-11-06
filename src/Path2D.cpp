@@ -19,9 +19,10 @@ namespace romea
 
 
 //-----------------------------------------------------------------------------
-Path2D::Path2D(const WayPoints & wayPoints,
-               const double & interpolationWindowLength):
-  sections_(),
+Path2D::Path2D(
+  const WayPoints & wayPoints,
+  const double & interpolationWindowLength)
+: sections_(),
   curvilinearAbscissa_(0),
   length_(0),
   interpolationWindowLength_(interpolationWindowLength)
@@ -29,15 +30,11 @@ Path2D::Path2D(const WayPoints & wayPoints,
   sections_.reserve(wayPoints.size());
 
   size_t global_point_index = 0;
-  for(const auto & sectionWayPoints : wayPoints)
-  {
-    if(sections_.empty())
-    {
+  for (const auto & sectionWayPoints : wayPoints) {
+    if (sections_.empty()) {
       sections_.emplace_back(interpolationWindowLength, 0, 0);
       sections_.back().addWayPoints(sectionWayPoints);
-    }
-    else
-    {
+    } else {
       curvilinearAbscissa_.increment(sections_.back().getLength());
 
       double finalValue = curvilinearAbscissa_.finalValue();
@@ -45,24 +42,22 @@ Path2D::Path2D(const WayPoints & wayPoints,
       sections_.back().addWayPoints(sectionWayPoints);
     }
 
-    length_+=sections_.back().getLength();
+    length_ += sections_.back().getLength();
     global_point_index += sections_.back().size();
   }
 
-  for(size_t i=0; i < sections_.size();++i)
-  {
-    for(size_t j=0; j < sections_[i].size();++j)
-    {
+  for (size_t i = 0; i < sections_.size(); ++i) {
+    for (size_t j = 0; j < sections_[i].size(); ++j) {
       sections_[i].getCurve(j);
     }
   }
 }
 
 Path2D::Path2D(
-    const WayPoints& wayPoints,
-    const double & interpolationWindowLength,
-    const Annotations & annotations):
-  Path2D(wayPoints, interpolationWindowLength)
+  const WayPoints & wayPoints,
+  const double & interpolationWindowLength,
+  const Annotations & annotations)
+: Path2D(wayPoints, interpolationWindowLength)
 {
   setAnnotations(annotations);
 
@@ -102,8 +97,7 @@ PathSection2D & Path2D::addEmptySection()
 {
   double abscissa = 0;
   size_t initial_index = 0;
-  if(sections_.size())
-  {
+  if (sections_.size()) {
     auto const & last_section = sections_.back();
     abscissa = last_section.getCurvilinearAbscissa().finalValue();
     initial_index = last_section.getInitialPointIndex() + last_section.size();
@@ -119,20 +113,16 @@ void Path2D::setAnnotations(Annotations const & annotations)
   // set abscissa member of each annotation
   auto annotations_it = begin(annotations_);
   auto annotations_end = end(annotations_);
-  for(auto const & section : sections_)
-  {
+  for (auto const & section : sections_) {
     auto const & section_initial_index = section.getInitialPointIndex();
     auto const & abscissa = section.getCurvilinearAbscissa();
 
-    for(std::size_t i = 0; i < section.size(); ++i)
-    {
-      if(annotations_it == annotations_end)
-      {
+    for (std::size_t i = 0; i < section.size(); ++i) {
+      if (annotations_it == annotations_end) {
         return;
       }
 
-      while(annotations_it->first == section_initial_index + i)
-      {
+      while (annotations_it->first == section_initial_index + i) {
         annotations_it->second.abscissa = abscissa[i];
         ++annotations_it;
       }

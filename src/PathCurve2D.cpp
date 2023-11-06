@@ -92,7 +92,9 @@ namespace romea
 //-----------------------------------------------------------------------------
 PathCurve2D::PathCurve2D()
 : fxPolynomCoefficient_(Eigen::Array3d::Zero()),
-  fyPolynomCoefficient_(Eigen::Array3d::Zero())
+  fyPolynomCoefficient_(Eigen::Array3d::Zero()),
+  indexInterval_(0, std::numeric_limits<size_t>::max()),
+  curvilinearAbscissaInterval_()
 {
 }
 

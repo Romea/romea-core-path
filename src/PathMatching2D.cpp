@@ -114,13 +114,12 @@ void match_impl(
     matchedPoints.push_back(*matched_point);
   }
 
-
-  romea::Interval<size_t> rangeIndex = section.
-    findIntervalBoundIndexes(curveIndex, curvilinearAbscissaResearchInterval);
+  // romea::Interval<size_t> rangeIndex = section.
+  //   findIntervalBoundIndexes(curveIndex, curvilinearAbscissaResearchInterval);
 
   // look at the previous section if the matching is at the begining of this one
   // if (rangeIndex.lower() == 0 && sectionIndex != 0 &&
-  //   curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
+  // curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
   // {
   //   const auto & previousSection = path.getSection(sectionIndex - 1);
   //   const size_t previousCurveIndex = path.getSection(sectionIndex - 1).size() - 1;
@@ -141,10 +140,10 @@ void match_impl(
   // }
 
   // if (rangeIndex.upper() == section.size() - 1 && sectionIndex != path.size() - 1 &&
-  //   curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue()) {
+  // curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue()) {
 
   // Do not look at next section if not at the end of current section
-  if(curveIndex >= section.size() - 1 && sectionIndex != path.size() - 1) {
+  if (curveIndex >= section.size() - 1 && sectionIndex != path.size() - 1) {
     const auto & nextSection = path.getSection(sectionIndex + 1);
 
     auto nextMatchedPoint = match(
@@ -157,7 +156,7 @@ void match_impl(
       researchRadius);
 
     if (nextMatchedPoint.has_value()) {
-      matchedPoints.clear(); // only keep the next matched point
+      matchedPoints.clear();  // only keep the next matched point
       nextMatchedPoint->sectionIndex = sectionIndex + 1;
       matchedPoints.push_back(*nextMatchedPoint);
     }
