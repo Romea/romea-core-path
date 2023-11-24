@@ -34,14 +34,14 @@ public:
 
   void SetUp() override
   {
-    std::vector<std::vector<romea::PathWayPoint2D>> wayPoints(3);
+    std::vector<std::vector<romea::core::PathWayPoint2D>> wayPoints(3);
     wayPoints[0] = loadWayPoints("/path11.txt");
     wayPoints[1] = loadWayPoints("/path12.txt");
     wayPoints[2] = loadWayPoints("/path13.txt");
-    path = std::make_unique<romea::Path2D>(wayPoints, 3);
+    path = std::make_unique<romea::core::Path2D>(wayPoints, 3);
   }
 
-  std::unique_ptr<romea::Path2D> path;
+  std::unique_ptr<romea::core::Path2D> path;
 };
 
 

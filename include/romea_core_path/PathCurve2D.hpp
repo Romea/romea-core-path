@@ -26,6 +26,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 
 class PathCurve2D
@@ -66,6 +68,7 @@ private:
   Interval<double> curvilinearAbscissaInterval_;
 };
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHCURVE2D_HPP_

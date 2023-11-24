@@ -23,6 +23,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 struct PathFrenetPose2D
 {
@@ -38,6 +40,7 @@ std::ostream & operator<<(std::ostream & os, const PathFrenetPose2D & frenetPose
 
 PathFrenetPose2D reverse(const PathFrenetPose2D & frenetPose);
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHFRENETPOSE2D_HPP_

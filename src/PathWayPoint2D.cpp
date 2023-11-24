@@ -20,6 +20,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathWayPoint2D::PathWayPoint2D()
@@ -28,8 +30,8 @@ PathWayPoint2D::PathWayPoint2D()
 }
 
 //-----------------------------------------------------------------------------
-PathWayPoint2D::PathWayPoint2D(const Eigen::Vector2d & position, double desired_speed):
-  position(position),
+PathWayPoint2D::PathWayPoint2D(const Eigen::Vector2d & position, double desired_speed)
+: position(position),
   desired_speed(desired_speed)
 {
 }
@@ -42,4 +44,5 @@ std::ostream & operator<<(std::ostream & os, const PathWayPoint2D & wayPoint)
   return os;
 }
 
+}  // namespace core
 }  // namespace romea

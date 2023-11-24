@@ -27,7 +27,8 @@
 
 namespace romea
 {
-
+namespace core
+{
 
 std::vector<PathMatchedPoint2D> match(
   const Path2D & path,
@@ -59,7 +60,7 @@ size_t bestMatchedPointIndex(
   const std::vector<PathMatchedPoint2D> & matchedPoints,
   const double & vehicleSpeed);
 
-
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHMATCHING2D_HPP_

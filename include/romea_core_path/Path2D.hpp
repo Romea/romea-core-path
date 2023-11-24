@@ -26,6 +26,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 class Path2D
 {
@@ -70,6 +72,7 @@ private:
   Annotations annotations_;
 };
 
+}   // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATH2D_HPP_

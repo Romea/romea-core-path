@@ -22,6 +22,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathFrenetPose2D::PathFrenetPose2D()
@@ -49,9 +51,9 @@ PathFrenetPose2D reverse(const PathFrenetPose2D & frenetPose)
 {
   PathFrenetPose2D reversedFrenetPose = frenetPose;
   reversedFrenetPose.lateralDeviation = -frenetPose.lateralDeviation;
-  reversedFrenetPose.courseDeviation = -romea::betweenMinusPiAndPi(
-    frenetPose.courseDeviation + M_PI);
+  reversedFrenetPose.courseDeviation = -betweenMinusPiAndPi(frenetPose.courseDeviation + M_PI);
   return reversedFrenetPose;
 }
 
+}  // namespace core
 }  // namespace romea

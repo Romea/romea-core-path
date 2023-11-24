@@ -88,6 +88,8 @@ inline bool computeSecondDegreePolynomialRegressionLight(
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathCurve2D::PathCurve2D()
@@ -248,4 +250,5 @@ const Interval<size_t> & PathCurve2D::getIndexInterval()const
   return indexInterval_;
 }
 
+}  // namespace core
 }  // namespace romea

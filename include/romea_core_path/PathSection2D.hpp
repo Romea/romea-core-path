@@ -31,6 +31,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 
 // TODO(jean) séparer la version static et online
@@ -107,6 +109,7 @@ private:
   double length_;
 };
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHSECTION2D_HPP_

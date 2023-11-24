@@ -32,11 +32,11 @@ public:
 
   void SetUp() override
   {
-    section = std::make_unique<romea::PathSection2D>(3);
+    section = std::make_unique<romea::core::PathSection2D>(3);
     section->addWayPoints(loadWayPoints("/section.txt"));
   }
 
-  std::unique_ptr<romea::PathSection2D> section;
+  std::unique_ptr<romea::core::PathSection2D> section;
 };
 
 //-----------------------------------------------------------------------------

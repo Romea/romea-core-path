@@ -24,6 +24,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 struct PathAnnotation
 {
@@ -41,6 +43,7 @@ inline bool operator<(PathAnnotation const & a, PathAnnotation const & b)
   return a.point_index < b.point_index;
 }
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHANNOTATION_HPP_

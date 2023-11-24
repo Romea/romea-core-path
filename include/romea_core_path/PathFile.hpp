@@ -30,6 +30,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 class PathFile
 {
@@ -62,6 +64,7 @@ private:
   Annotations annotations_;
 };
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHFILE_HPP_

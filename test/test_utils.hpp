@@ -28,16 +28,16 @@
 #include "romea_core_path/PathWayPoint2D.hpp"
 
 //-----------------------------------------------------------------------------
-std::vector<romea::PathWayPoint2D> loadWayPoints(const std::string & filename)
+std::vector<romea::core::PathWayPoint2D> loadWayPoints(const std::string & filename)
 {
-  std::vector<romea::PathWayPoint2D> wayPoints;
+  std::vector<romea::core::PathWayPoint2D> wayPoints;
   wayPoints.reserve(1000);
 
   std::string path = std::string(TEST_DIR);
   std::ifstream data(path + filename);
 
-  romea::PathWayPoint2D wayPoint;
-  romea::PathWayPoint2D previousWayPoint;
+  romea::core::PathWayPoint2D wayPoint;
+  romea::core::PathWayPoint2D previousWayPoint;
   previousWayPoint.position[0] = std::numeric_limits<double>::max();
   previousWayPoint.position[1] = std::numeric_limits<double>::max();
   previousWayPoint.desired_speed = 0;

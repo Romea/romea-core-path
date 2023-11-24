@@ -24,6 +24,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 struct PathPosture2D
 {
@@ -39,6 +41,7 @@ std::ostream & operator<<(std::ostream & os, const PathPosture2D & posture);
 
 PathPosture2D reverse(const PathPosture2D & posture);
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHPOSTURE2D_HPP_

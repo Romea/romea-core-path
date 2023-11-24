@@ -46,7 +46,7 @@ public:
     cumsum.increment(0.43);
   }
 
-  romea::CumulativeSum<double, Eigen::aligned_allocator<double>> cumsum;
+  romea::core::CumulativeSum<double, Eigen::aligned_allocator<double>> cumsum;
 };
 
 

@@ -24,6 +24,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 struct PathMatchedPoint2D
 {
@@ -41,6 +43,7 @@ std::ostream & operator<<(std::ostream & os, const PathMatchedPoint2D & matchedP
 
 bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2);
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHMATCHEDPOINT2D_HPP_

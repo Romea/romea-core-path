@@ -33,6 +33,8 @@ static bool endsWith(std::string_view str, std::string_view suffix)
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathFile::PathFile(const std::string & filename)
@@ -69,7 +71,7 @@ void PathFile::loadHeader_()
 
     file_ >> reference_latitude >> reference_longitude >> reference_altitude;
 
-    romea::GeodeticCoordinates anchor = makeGeodeticCoordinates(
+    GeodeticCoordinates anchor = makeGeodeticCoordinates(
       reference_latitude / 180. * M_PI, reference_longitude / 180. * M_PI, reference_altitude);
 
     world_to_path_ = ENUConverter(anchor).getEnuToEcefTransform();
@@ -148,7 +150,7 @@ void PathFile::loadHeaderV2_(const nlohmann::json & data)
   const auto & origin = data["origin"];
   if (origin["type"] == "WGS84") {
     const auto & coords = origin["coordinates"];
-    romea::GeodeticCoordinates anchor = makeGeodeticCoordinates(
+    GeodeticCoordinates anchor = makeGeodeticCoordinates(
       coords[0].get<double>() / 180. * M_PI, coords[1].get<double>() / 180. * M_PI,
       coords[2].get<double>());
 
@@ -227,4 +229,5 @@ const std::string & PathFile::getCoordinateSystemDescription() const {return coo
 //-----------------------------------------------------------------------------
 const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const {return world_to_path_;}
 
+}  // namespace core
 }  // namespace romea

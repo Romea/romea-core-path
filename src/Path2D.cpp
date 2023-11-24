@@ -16,7 +16,8 @@
 
 namespace romea
 {
-
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 Path2D::Path2D(
@@ -130,4 +131,5 @@ void Path2D::setAnnotations(Annotations const & annotations)
   }
 }
 
+}  // namespace core
 }  // namespace romea

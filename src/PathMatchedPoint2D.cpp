@@ -22,6 +22,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathMatchedPoint2D::PathMatchedPoint2D()
@@ -57,5 +59,5 @@ bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & 
   }
 }
 
-
+}  // namespace core
 }  // namespace romea

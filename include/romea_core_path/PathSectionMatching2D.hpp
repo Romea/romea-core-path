@@ -27,7 +27,8 @@
 
 namespace romea
 {
-
+namespace core
+{
 
 std::optional<PathMatchedPoint2D> match(
   const PathSection2D & section,
@@ -59,6 +60,7 @@ std::optional<PathMatchedPoint2D> match(
   const Pose2D & vehiclePose,
   const double & desiredSpeed);
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHSECTIONMATCHING2D_HPP_

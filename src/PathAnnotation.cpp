@@ -16,6 +16,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 PathAnnotation::PathAnnotation(nlohmann::json const & data)
 : type(data["type"]),
@@ -27,4 +29,5 @@ PathAnnotation::PathAnnotation(nlohmann::json const & data)
   }
 }
 
+}  // namespace core
 }  // namespace romea

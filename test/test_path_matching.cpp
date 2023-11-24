@@ -37,14 +37,14 @@ public:
 
   void load(const std::string & path_name)
   {
-    std::vector<std::vector<romea::PathWayPoint2D>> wayPoints(3);
+    std::vector<std::vector<romea::core::PathWayPoint2D>> wayPoints(3);
     wayPoints[0] = loadWayPoints("/" + path_name + "1.txt");
     wayPoints[1] = loadWayPoints("/" + path_name + "2.txt");
     wayPoints[2] = loadWayPoints("/" + path_name + "3.txt");
-    path = std::make_unique<romea::Path2D>(wayPoints, 3);
+    path = std::make_unique<romea::core::Path2D>(wayPoints, 3);
   }
 
-  std::unique_ptr<romea::Path2D> path;
+  std::unique_ptr<romea::core::Path2D> path;
   double timeHorizon;
   double maximalRadiusResearch;
 };
@@ -53,13 +53,13 @@ public:
 TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleIsStopped)
 {
   load("path1");
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = 18.3;
   vehiclePose.position.y() = -4;
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = 0;
 
-  auto matchedPoints = romea::match(
+  auto matchedPoints = romea::core::match(
     *path,
     vehiclePose,
     vehicleSpeed,
@@ -75,13 +75,13 @@ TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleIsStopped)
 TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleGoesForward)
 {
   load("path1");
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = 18.3;
   vehiclePose.position.y() = -4;
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = 1.;
 
-  auto matchedPoints = romea::match(
+  auto matchedPoints = romea::core::match(
     *path,
     vehiclePose,
     vehicleSpeed,
@@ -97,13 +97,13 @@ TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleGoesForward)
 TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleGoesBackward)
 {
   load("path1");
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = 18.3;
   vehiclePose.position.y() = -4;
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = -1.;
 
-  auto matchedPoints = romea::match(
+  auto matchedPoints = romea::core::match(
     *path,
     vehiclePose,
     vehicleSpeed,
@@ -119,7 +119,7 @@ TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleGoesBackward)
 TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleIsToFarFromPath)
 {
   load("path1");
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = 18.3;
   vehiclePose.position.y() = -40;
   vehiclePose.yaw = -0.8;
@@ -140,13 +140,13 @@ TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleIsToFarFromPath)
 TEST_F(TestPathMatching, testLocalMatchingOK)
 {
   load("path1");
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = 18.3;
   firstVehiclePose.position.y() = -4;
   firstVehiclePose.yaw = 0.278;
   double firstVehicleSpeed = 1.;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = 22.1;
   secondVehiclePose.position.y() = -4;
   secondVehiclePose.yaw = -0.4;
@@ -188,13 +188,13 @@ TEST_F(TestPathMatching, testLocalMatchingOK)
 TEST_F(TestPathMatching, testGlobalMatchingInBird)
 {
   load("path2");
-  romea::Pose2D pose;
+  romea::core::Pose2D pose;
   pose.position.x() = -1.1099182296584995;
   pose.position.y() = 36.015842580693125;
   pose.yaw = 1.0595642624260422;
   double speed = 0.86174230688888409;
 
-  auto matchedPoints = romea::match(
+  auto matchedPoints = romea::core::match(
     *path,
     pose,
     speed,
@@ -213,13 +213,13 @@ TEST_F(TestPathMatching, testGlobalMatchingInBird)
 TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
 {
   load("path1");
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = 22.1;
   firstVehiclePose.position.y() = -4;
   firstVehiclePose.yaw = -0.4;
   double firstVehicleSpeed = 1.;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = 24.5;
   secondVehiclePose.position.y() = -6;
   secondVehiclePose.yaw = -1.2;
@@ -267,13 +267,13 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
 TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
 {
   load("path1");
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = 22.1;
   firstVehiclePose.position.y() = -4;
   firstVehiclePose.yaw = -0.4;
   double firstVehicleSpeed = 1.;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = 24.5;
   secondVehiclePose.position.y() = -6;
   secondVehiclePose.yaw = -1.2;
@@ -320,13 +320,13 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
 TEST_F(TestPathMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMatchedPoint)
 {
   load("path1");
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = 22.1;
   firstVehiclePose.position.y() = -4;
   firstVehiclePose.yaw = -0.4;
   double firstVehicleSpeed = 1.;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = 24.5;
   secondVehiclePose.position.y() = -6;
   secondVehiclePose.yaw = -1.2;

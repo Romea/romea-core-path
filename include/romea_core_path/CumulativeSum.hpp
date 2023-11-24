@@ -22,6 +22,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 template<typename T, typename Allocator>
 class CumulativeSum
@@ -149,6 +151,7 @@ CumulativeSum<T, Allocator>::end() const
   return cumsum_.end();
 }
 
+}  // namespace core
 }  // namespace romea
 
 

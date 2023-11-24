@@ -24,6 +24,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 struct PathWayPoint2D
 {
@@ -38,6 +40,7 @@ struct PathWayPoint2D
 
 std::ostream & operator<<(std::ostream & os, const PathWayPoint2D & wayPoint);
 
+}  // namespace core
 }  // namespace romea
 
 #endif  // ROMEA_CORE_PATH__PATHWAYPOINT2D_HPP_

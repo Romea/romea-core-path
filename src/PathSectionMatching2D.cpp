@@ -29,9 +29,9 @@ namespace
 
 //-----------------------------------------------------------------------------
 size_t findNearestCurveIndex(
-  const romea::PathSection2D & section,
+  const romea::core::PathSection2D & section,
   const Eigen::Vector2d & vehiclePosition,
-  const romea::Interval<size_t> indexRange,
+  const romea::core::Interval<size_t> indexRange,
   const double & researchRadius)
 {
   assert(indexRange.upper() < section.size());
@@ -56,15 +56,15 @@ size_t findNearestCurveIndex(
 
 
 //-----------------------------------------------------------------------------
-std::optional<romea::PathMatchedPoint2D> match_impl(
-  const romea::PathSection2D & section,
-  const romea::Pose2D & vehiclePose,
+std::optional<romea::core::PathMatchedPoint2D> match_impl(
+  const romea::core::PathSection2D & section,
+  const romea::core::Pose2D & vehiclePose,
   const double & vehicleSpeed,
   const double & time_horizon,
-  const romea::Interval<size_t> & rangeIndex,
+  const romea::core::Interval<size_t> & rangeIndex,
   const double & researchRadius)
 {
-  std::optional<romea::PathMatchedPoint2D> matchedPoint;
+  std::optional<romea::core::PathMatchedPoint2D> matchedPoint;
 
   size_t nearestCurveIndex = findNearestCurveIndex(
     section,
@@ -103,9 +103,9 @@ std::optional<romea::PathMatchedPoint2D> match_impl(
 
 
 //-----------------------------------------------------------------------------
-std::optional<romea::PathMatchedPoint2D> match_impl(
-  const romea::PathSection2D & section,
-  const romea::Pose2D & vehiclePose,
+std::optional<romea::core::PathMatchedPoint2D> match_impl(
+  const romea::core::PathSection2D & section,
+  const romea::core::Pose2D & vehiclePose,
   const double & vehicleSpeed,
   const double & time_horizon,
   const double & researchRadius)
@@ -115,7 +115,7 @@ std::optional<romea::PathMatchedPoint2D> match_impl(
     vehiclePose,
     vehicleSpeed,
     time_horizon,
-    romea::Interval<size_t>(0, section.size() - 1),
+    romea::core::Interval<size_t>(0, section.size() - 1),
     researchRadius);
 }
 
@@ -125,6 +125,8 @@ std::optional<romea::PathMatchedPoint2D> match_impl(
 namespace romea
 {
 
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 std::optional<PathMatchedPoint2D> match(
@@ -241,4 +243,5 @@ std::optional<PathMatchedPoint2D> match(
   return {};
 }
 
+}  // namespace core
 }  // namespace romea

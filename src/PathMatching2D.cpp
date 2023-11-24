@@ -30,15 +30,14 @@
 namespace
 {
 
-
 //----------------------------------------------------------------------------
 void match_impl(
-  const romea::Path2D & path,
-  const romea::Pose2D & vehiclePose,
+  const romea::core::Path2D & path,
+  const romea::core::Pose2D & vehiclePose,
   const double & vehicleSpeed,
   const double & time_horizon,
   const double & researchRadius,
-  std::list<romea::PathMatchedPoint2D> & matchedPoints)
+  std::list<romea::core::PathMatchedPoint2D> & matchedPoints)
 {
   for (size_t n = 0; n < path.size(); ++n) {
     //    std::cout << "\n global match section "<< n<< std::endl;
@@ -87,15 +86,15 @@ void match_impl(
 
 //-----------------------------------------------------------------------------
 void match_impl(
-  const romea::Path2D & path,
-  const romea::Pose2D & vehiclePose,
+  const romea::core::Path2D & path,
+  const romea::core::Pose2D & vehiclePose,
   const double & vehicleSpeed,
   const size_t & sectionIndex,
   const size_t & curveIndex,
-  const romea::Interval<double> & curvilinearAbscissaResearchInterval,
+  const romea::core::Interval<double> & curvilinearAbscissaResearchInterval,
   const double & time_horizon,
   const double & researchRadius,
-  std::list<romea::PathMatchedPoint2D> & matchedPoints)
+  std::list<romea::core::PathMatchedPoint2D> & matchedPoints)
 {
   //  std::cout <<"\n\n local"<< std::endl;
   const auto & section = path.getSection(sectionIndex);
@@ -166,6 +165,8 @@ void match_impl(
 }  // namespace
 
 namespace romea
+{
+namespace core
 {
 
 //----------------------------------------------------------------------------
@@ -266,4 +267,5 @@ size_t bestMatchedPointIndex(
   return bestIndex;
 }
 
+}  // namespace core
 }  // namespace romea

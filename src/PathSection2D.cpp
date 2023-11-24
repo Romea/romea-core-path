@@ -23,6 +23,8 @@
 
 namespace romea
 {
+namespace core
+{
 
 //-----------------------------------------------------------------------------
 PathSection2D::PathSection2D(
@@ -230,4 +232,5 @@ Interval<size_t> PathSection2D::findIntervalBoundIndexes(
   return {minimalIndex, maximalIndex};
 }
 
+}  // namespace core
 }  // namespace romea

@@ -36,11 +36,11 @@ public:
 
   void SetUp() override
   {
-    path = std::make_unique<romea::PathSection2D>(3);
+    path = std::make_unique<romea::core::PathSection2D>(3);
     path->addWayPoints(loadWayPoints("/section.txt"));
   }
 
-  std::unique_ptr<romea::PathSection2D> path;
+  std::unique_ptr<romea::core::PathSection2D> path;
   double maximalRadiusResearch;
   double time_horizon;
 };
@@ -48,7 +48,7 @@ public:
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testGlobalMatchingOK)
 {
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = -8.2;
   vehiclePose.position.y() = 16.1;
   vehiclePose.yaw = 120 / 180. * M_PI;
@@ -75,7 +75,7 @@ TEST_F(TestSectionMatching, testGlobalMatchingOK)
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testGlobalMatchingFailedWhenVehicleIsToFarFromPath)
 {
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = -5.2;
   vehiclePose.position.y() = 30.1;
   vehiclePose.yaw = -20 / 180. * M_PI;
@@ -94,7 +94,7 @@ TEST_F(TestSectionMatching, testGlobalMatchingFailedWhenVehicleIsToFarFromPath)
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testGlobalMatchingFailedWhenVehicleIsGoingInWrongDirection)
 {
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = -8.2;
   vehiclePose.position.y() = 16.1;
   vehiclePose.yaw = -20 / 180. * M_PI;
@@ -113,7 +113,7 @@ TEST_F(TestSectionMatching, testGlobalMatchingFailedWhenVehicleIsGoingInWrongDir
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testGlobalMatchingOKWhenVehicleIsJustAfterEndOfSection)
 {
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = -136.4;
   vehiclePose.position.y() = 8.4;
   vehiclePose.yaw = -100 / 180. * M_PI;
@@ -134,7 +134,7 @@ TEST_F(TestSectionMatching, testGlobalMatchingOKWhenVehicleIsJustAfterEndOfSecti
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testGlobalMatchingOKWhenVehicleIsJustBeforeBeginningOfSection)
 {
-  romea::Pose2D vehiclePose;
+  romea::core::Pose2D vehiclePose;
   vehiclePose.position.x() = 0;
   vehiclePose.position.y() = 2;
   vehiclePose.yaw = 120 / 180. * M_PI;
@@ -155,13 +155,13 @@ TEST_F(TestSectionMatching, testGlobalMatchingOKWhenVehicleIsJustBeforeBeginning
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testLocalMatchingOK)
 {
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = -8.2;
   firstVehiclePose.position.y() = 16.1;
   firstVehiclePose.yaw = 120 / 180. * M_PI;
   double firstVehicleSpeed = 1;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = -9.3;
   secondVehiclePose.position.y() = 17.2;
   secondVehiclePose.yaw = 130 / 180. * M_PI;
@@ -197,13 +197,13 @@ TEST_F(TestSectionMatching, testLocalMatchingOK)
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, testLocalMatchingOKWhenVehicleSpeedHasBeenReversed)
 {
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = -8.2;
   firstVehiclePose.position.y() = 16.1;
   firstVehiclePose.yaw = 120 / 180. * M_PI;
   double firstVehicleSpeed = 1;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = -9.3;
   secondVehiclePose.position.y() = 17.2;
   secondVehiclePose.yaw = 130 / 180. * M_PI;
@@ -233,13 +233,13 @@ TEST_F(TestSectionMatching, testLocalMatchingOKWhenVehicleSpeedHasBeenReversed)
 //-----------------------------------------------------------------------------
 TEST_F(TestSectionMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMatchedPoint)
 {
-  romea::Pose2D firstVehiclePose;
+  romea::core::Pose2D firstVehiclePose;
   firstVehiclePose.position.x() = -8.2;
   firstVehiclePose.position.y() = 16.1;
   firstVehiclePose.yaw = 120 / 180. * M_PI;
   double firstVehicleSpeed = 1;
 
-  romea::Pose2D secondVehiclePose;
+  romea::core::Pose2D secondVehiclePose;
   secondVehiclePose.position.x() = -11.3;
   secondVehiclePose.position.y() = 17.6;
   secondVehiclePose.yaw = 130 / 180. * M_PI;
