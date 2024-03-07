@@ -13,6 +13,8 @@
 // limitations under the License.
 
 // std
+#include <optional>
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <iostream>
@@ -242,6 +244,7 @@ std::optional<PathMatchedPoint2D> match(
 
   return {};
 }
+
 
 }  // namespace core
 }  // namespace romea

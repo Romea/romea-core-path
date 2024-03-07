@@ -56,10 +56,6 @@ std::vector<PathMatchedPoint2D> match(
   const double & time_horizon,
   const double & researchRadius);
 
-size_t bestMatchedPointIndex(
-  const std::vector<PathMatchedPoint2D> & matchedPoints,
-  const double & vehicleSpeed);
-
 }  // namespace core
 }  // namespace romea
 

@@ -184,7 +184,7 @@ TEST_F(TestPathMatching, testLocalMatchingOK)
   EXPECT_NEAR(secondMatchedPoints.front().frenetPose.courseDeviation, -0.1679, 0.001);
 }
 
-// //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 TEST_F(TestPathMatching, testGlobalMatchingInBird)
 {
   load("path2");
@@ -201,12 +201,9 @@ TEST_F(TestPathMatching, testGlobalMatchingInBird)
     timeHorizon,
     maximalRadiusResearch);
 
-  EXPECT_EQ(matchedPoints.size(), 2);
+  EXPECT_EQ(matchedPoints.size(), 1);
   EXPECT_EQ(matchedPoints.front().sectionIndex, 0);
   EXPECT_EQ(matchedPoints.front().curveIndex, 134);
-
-  EXPECT_EQ(matchedPoints.back().sectionIndex, 1);
-  EXPECT_EQ(matchedPoints.back().curveIndex, 7);
 }
 
 //-----------------------------------------------------------------------------
@@ -306,12 +303,21 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
     firstMatchedPoints.back().frenetPose.curvilinearAbscissa);
 
   EXPECT_EQ(secondMatchedPoints.size(), 2);
-  EXPECT_EQ(secondMatchedPoints.front().sectionIndex, 0);
-  EXPECT_EQ(secondMatchedPoints.front().curveIndex, 258);
-  EXPECT_EQ(secondMatchedPoints.back().sectionIndex, 1);
-  EXPECT_EQ(secondMatchedPoints.back().curveIndex, 0);
+  // EXPECT_EQ(secondMatchedPoints.front().sectionIndex, 0);
+  // EXPECT_EQ(secondMatchedPoints.front().curveIndex, 258);
+  // EXPECT_EQ(secondMatchedPoints.back().sectionIndex, 1);
+  // EXPECT_EQ(secondMatchedPoints.back().curveIndex, 0);
 
-  EXPECT_GT(
+  // EXPECT_GT(
+  //   secondMatchedPoints.front().frenetPose.curvilinearAbscissa,
+  //   secondMatchedPoints.back().frenetPose.curvilinearAbscissa);
+
+  EXPECT_EQ(secondMatchedPoints.front().sectionIndex, 1);
+  EXPECT_EQ(secondMatchedPoints.front().curveIndex, 0);
+  EXPECT_EQ(secondMatchedPoints.back().sectionIndex, 0);
+  EXPECT_EQ(secondMatchedPoints.back().curveIndex, 258);
+
+  EXPECT_LT(
     secondMatchedPoints.front().frenetPose.curvilinearAbscissa,
     secondMatchedPoints.back().frenetPose.curvilinearAbscissa);
 }

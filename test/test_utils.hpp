@@ -45,6 +45,8 @@ std::vector<romea::core::PathWayPoint2D> loadWayPoints(const std::string & filen
   while (!data.eof()) {
     data >> wayPoint.position[0] >> wayPoint.position[1] >> wayPoint.desired_speed;
     if ((wayPoint.position - previousWayPoint.position).norm() > 0.01) {
+      // std::cout << wayPoint.position[0] << " " << wayPoint.position[1] << " " <<
+      //   wayPoint.desired_speed << std::endl;
       wayPoints.push_back(wayPoint);
     } else {
       break;

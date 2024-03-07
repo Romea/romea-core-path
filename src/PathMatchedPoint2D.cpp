@@ -15,10 +15,12 @@
 // std
 #include <limits>
 #include <ostream>
+#include <vector>
 
 // romea
 #include "romea_core_path/PathMatchedPoint2D.hpp"
 #include "romea_core_common/math/EulerAngles.hpp"
+#include "romea_core_common/math/Algorithm.hpp"
 
 namespace romea
 {
@@ -48,15 +50,29 @@ std::ostream & operator<<(std::ostream & os, const PathMatchedPoint2D & matchedP
   return os;
 }
 
+//-----------------------------------------------------------------------------
+std::optional<PathMatchedPoint2D> findMatchedPointBySectionIndex(
+  const std::vector<PathMatchedPoint2D> matchedPoints,
+  const size_t & sectionIndex)
+{
+  auto it = std::find_if(
+    matchedPoints.begin(), matchedPoints.end(),
+    [sectionIndex](const PathMatchedPoint2D & matchedPoint) {
+      return matchedPoint.sectionIndex == sectionIndex;
+    }
+  );
+
+  if (it != matchedPoints.end()) {
+    return *it;
+  } else {
+    return {};
+  }
+}
 
 //-----------------------------------------------------------------------------
-bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2)
+double direction(const PathMatchedPoint2D & matchedPoint)
 {
-  if (p1.sectionIndex < p2.sectionIndex) {
-    return p1.frenetPose.curvilinearAbscissa < p2.frenetPose.curvilinearAbscissa;
-  } else {
-    return p1.frenetPose.curvilinearAbscissa > p2.frenetPose.curvilinearAbscissa;
-  }
+  return std::isfinite(matchedPoint.desiredSpeed) ? sign(matchedPoint.desiredSpeed) : 1;
 }
 
 }  // namespace core

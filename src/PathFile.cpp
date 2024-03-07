@@ -16,11 +16,14 @@
 #include <cstdio>
 #include <exception>
 #include <stdexcept>
+#include <map>
 #include <string>
+#include <vector>
+#include <utility>
 
 // romea
 #include "romea_core_path/PathFile.hpp"
-#include <romea_core_common/geodesy/ENUConverter.hpp>
+#include "romea_core_common/geodesy/ENUConverter.hpp"
 
 // json
 #include "nlohmann/json.hpp"

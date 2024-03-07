@@ -40,7 +40,7 @@ void match_impl(
   std::list<romea::core::PathMatchedPoint2D> & matchedPoints)
 {
   for (size_t n = 0; n < path.size(); ++n) {
-    //    std::cout << "\n global match section "<< n<< std::endl;
+    // std::cout << "\n global match section " << n << std::endl;
     auto matchedPoint = match(
       path.getSection(n),
       vehiclePose,
@@ -96,7 +96,7 @@ void match_impl(
   const double & researchRadius,
   std::list<romea::core::PathMatchedPoint2D> & matchedPoints)
 {
-  //  std::cout <<"\n\n local"<< std::endl;
+  // std::cout << "\n\n local" << std::endl;
   const auto & section = path.getSection(sectionIndex);
 
   auto matched_point = match(
@@ -110,39 +110,44 @@ void match_impl(
 
   if (matched_point.has_value()) {
     matched_point->sectionIndex = sectionIndex;
+    matched_point->sectionMinimalCurvilinearAbscissa =
+      section.getCurvilinearAbscissa().initialValue();
+    matched_point->sectionMaximalCurvilinearAbscissa =
+      section.getCurvilinearAbscissa().finalValue();
     matchedPoints.push_back(*matched_point);
   }
 
-  // romea::Interval<size_t> rangeIndex = section.
-  //   findIntervalBoundIndexes(curveIndex, curvilinearAbscissaResearchInterval);
+  romea::core::Interval<size_t> rangeIndex = section.
+    findIntervalBoundIndexes(curveIndex, curvilinearAbscissaResearchInterval);
 
-  // look at the previous section if the matching is at the begining of this one
-  // if (rangeIndex.lower() == 0 && sectionIndex != 0 &&
-  // curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
-  // {
-  //   const auto & previousSection = path.getSection(sectionIndex - 1);
-  //   const size_t previousCurveIndex = path.getSection(sectionIndex - 1).size() - 1;
-  //
-  //   auto previousMatchedPoint = match(
-  //     previousSection,
-  //     vehiclePose,
-  //     vehicleSpeed,
-  //     previousCurveIndex,
-  //     curvilinearAbscissaResearchInterval,
-  //     time_horizon,
-  //     researchRadius);
-  //
-  //   if (previousMatchedPoint.has_value()) {
-  //     previousMatchedPoint->sectionIndex = sectionIndex - 1;
-  //     matchedPoints.push_front(*previousMatchedPoint);
-  //   }
-  // }
+  if (rangeIndex.lower() == 0 && sectionIndex != 0 &&
+    curvilinearAbscissaResearchInterval.lower() < section.getCurvilinearAbscissa().initialValue())
+  {
+    const auto & previousSection = path.getSection(sectionIndex - 1);
+    const size_t previousCurveIndex = path.getSection(sectionIndex - 1).size() - 1;
 
-  // if (rangeIndex.upper() == section.size() - 1 && sectionIndex != path.size() - 1 &&
-  // curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue()) {
+    auto previousMatchedPoint = match(
+      previousSection,
+      vehiclePose,
+      vehicleSpeed,
+      previousCurveIndex,
+      curvilinearAbscissaResearchInterval,
+      time_horizon,
+      researchRadius);
 
-  // Do not look at next section if not at the end of current section
-  if (curveIndex >= section.size() - 1 && sectionIndex != path.size() - 1) {
+    if (previousMatchedPoint.has_value()) {
+      previousMatchedPoint->sectionIndex = sectionIndex - 1;
+      previousMatchedPoint->sectionMinimalCurvilinearAbscissa =
+        previousSection.getCurvilinearAbscissa().initialValue();
+      previousMatchedPoint->sectionMaximalCurvilinearAbscissa =
+        previousSection.getCurvilinearAbscissa().finalValue();
+      matchedPoints.push_front(*previousMatchedPoint);
+    }
+  }
+
+  if (rangeIndex.upper() == section.size() - 1 && sectionIndex != path.size() - 1 &&
+    curvilinearAbscissaResearchInterval.upper() > section.getCurvilinearAbscissa().finalValue())
+  {
     const auto & nextSection = path.getSection(sectionIndex + 1);
 
     auto nextMatchedPoint = match(
@@ -155,11 +160,32 @@ void match_impl(
       researchRadius);
 
     if (nextMatchedPoint.has_value()) {
-      matchedPoints.clear();  // only keep the next matched point
       nextMatchedPoint->sectionIndex = sectionIndex + 1;
+      nextMatchedPoint->sectionMinimalCurvilinearAbscissa =
+        nextSection.getCurvilinearAbscissa().initialValue();
+      nextMatchedPoint->sectionMaximalCurvilinearAbscissa =
+        nextSection.getCurvilinearAbscissa().finalValue();
       matchedPoints.push_back(*nextMatchedPoint);
     }
   }
+
+  // reorder
+  matchedPoints.sort(
+    [vehicleSpeed](
+      const romea::core::PathMatchedPoint2D & first,
+      const romea::core::PathMatchedPoint2D & second)
+    {
+      double firstlateralDeviation = std::abs(first.frenetPose.lateralDeviation);
+      if (std::signbit(first.desiredSpeed) != std::signbit(vehicleSpeed)) {
+        firstlateralDeviation += 1000;
+      }
+      double secondlateralDeviation = std::abs(second.frenetPose.lateralDeviation);
+      if (std::signbit(second.desiredSpeed) != std::signbit(vehicleSpeed)) {
+        secondlateralDeviation += 1000;
+      }
+
+      return firstlateralDeviation < secondlateralDeviation;
+    });
 }
 
 }  // namespace
@@ -241,30 +267,6 @@ std::vector<PathMatchedPoint2D> match(
     matchedPoints);
 
   return std::vector<PathMatchedPoint2D>(matchedPoints.begin(), matchedPoints.end());
-}
-
-//-----------------------------------------------------------------------------
-size_t bestMatchedPointIndex(
-  const std::vector<PathMatchedPoint2D> & matchedPoints,
-  const double & vehicleSpeed)
-{
-  assert(!matchedPoints.empty());
-
-  size_t bestIndex = matchedPoints.size();
-  double minimalLateralDeviation = std::numeric_limits<double>::max();
-  for (size_t n = 0; n < matchedPoints.size(); ++n) {
-    double lateralDeviation = std::abs(matchedPoints[n].frenetPose.lateralDeviation);
-    if (std::signbit(matchedPoints[n].desiredSpeed) != std::signbit(vehicleSpeed)) {
-      lateralDeviation += 1000;
-    }
-
-    if (lateralDeviation < minimalLateralDeviation) {
-      bestIndex = n;
-      minimalLateralDeviation = lateralDeviation;
-    }
-  }
-
-  return bestIndex;
 }
 
 }  // namespace core

@@ -17,6 +17,7 @@
 
 // std
 #include <ostream>
+#include <vector>
 
 // romea
 #include "romea_core_path/PathPosture2D.hpp"
@@ -36,12 +37,19 @@ struct PathMatchedPoint2D
   double futureCurvature;
   double desiredSpeed;
   size_t sectionIndex;
+  double sectionMinimalCurvilinearAbscissa;
+  double sectionMaximalCurvilinearAbscissa;
   size_t curveIndex;
 };
 
 std::ostream & operator<<(std::ostream & os, const PathMatchedPoint2D & matchedPoint);
 
-bool isOrderRespected(const PathMatchedPoint2D & p1, const PathMatchedPoint2D & p2);
+double direction(const PathMatchedPoint2D & matchedPoint);
+
+std::optional<PathMatchedPoint2D> findMatchedPointBySectionIndex(
+  const std::vector<PathMatchedPoint2D> matchedPoints,
+  const size_t & sectionIndex);
+
 
 }  // namespace core
 }  // namespace romea
