@@ -164,24 +164,34 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
   //    bool have_root = false;
   //    curvilinearAbscissa = solver.greatestRealRoot(have_root);
 
-  // Using gsl
-  double root_0, root_1 = -100, root_2 = -100;
-  int nb_roots = gsl_poly_solve_cubic(
-    coeff[1] / coeff[0],
-    coeff[2] / coeff[0],
-    coeff[3] / coeff[0],
-    &root_0,
-    &root_1,
-    &root_2);
-
-  if (nb_roots == 1) {
-    if (curvilinearAbscissaInterval_.inside(root_0)) {
-      return root_0;
+  if (std::isnan(coeff[1] / coeff[0])) {
+    double s = std::sqrt(
+      std::pow(vehiclePosition.x() - ax, 2.0) +
+      std::pow(vehiclePosition.y() - ay, 2.0));
+    if (curvilinearAbscissaInterval_.inside(s)) {
+      return s;
     }
-  } else if (nb_roots == 3) {
-    for (double root : {root_0, root_1, root_2}) {
-      if (curvilinearAbscissaInterval_.inside(root)) {
-        return root;
+  } else {
+
+    // Using gsl
+    double root_0, root_1 = -100, root_2 = -100;
+    int nb_roots = gsl_poly_solve_cubic(
+      coeff[1] / coeff[0],
+      coeff[2] / coeff[0],
+      coeff[3] / coeff[0],
+      &root_0,
+      &root_1,
+      &root_2);
+
+    if (nb_roots == 1) {
+      if (curvilinearAbscissaInterval_.inside(root_0)) {
+        return root_0;
+      }
+    } else if (nb_roots == 3) {
+      for (double root : {root_0, root_1, root_2}) {
+        if (curvilinearAbscissaInterval_.inside(root)) {
+          return root;
+        }
       }
     }
   }
