@@ -41,7 +41,7 @@ namespace core
 
 //-----------------------------------------------------------------------------
 PathFile::PathFile(const std::string & filename)
-: coordinate_system_(), world_to_path_(), way_points_(), file_(filename)
+: coordinate_system_(), world_to_path_(), wgs84_anchor_(), way_points_(), file_(filename)
 {
   if (file_.is_open()) {
     if (endsWith(filename, ".traj")) {
@@ -74,10 +74,12 @@ void PathFile::loadHeader_()
 
     file_ >> reference_latitude >> reference_longitude >> reference_altitude;
 
-    GeodeticCoordinates anchor = makeGeodeticCoordinates(
-      reference_latitude / 180. * M_PI, reference_longitude / 180. * M_PI, reference_altitude);
+    wgs84_anchor_ = makeGeodeticCoordinates(
+      reference_latitude / 180. * M_PI,
+      reference_longitude / 180. * M_PI,
+      reference_altitude);
 
-    world_to_path_ = ENUConverter(anchor).getEnuToEcefTransform();
+    world_to_path_ = ENUConverter(*wgs84_anchor_).getEnuToEcefTransform();
   } else if (header.compare("ENU") == 0 || header.compare("PIXEL") == 0) {
     world_to_path_ = Eigen::Affine3d::Identity();
   } else {
@@ -153,11 +155,12 @@ void PathFile::loadHeaderV2_(const nlohmann::json & data)
   const auto & origin = data["origin"];
   if (origin["type"] == "WGS84") {
     const auto & coords = origin["coordinates"];
-    GeodeticCoordinates anchor = makeGeodeticCoordinates(
-      coords[0].get<double>() / 180. * M_PI, coords[1].get<double>() / 180. * M_PI,
+    wgs84_anchor_ = makeGeodeticCoordinates(
+      coords[0].get<double>() / 180. * M_PI,
+      coords[1].get<double>() / 180. * M_PI,
       coords[2].get<double>());
 
-    world_to_path_ = ENUConverter(anchor).getEnuToEcefTransform();
+    world_to_path_ = ENUConverter(*wgs84_anchor_).getEnuToEcefTransform();
     coordinate_system_ = origin["type"];
   } else {
     throw(std::runtime_error("Only 'WGS84' origin type is currently supported"));
@@ -231,6 +234,9 @@ const std::string & PathFile::getCoordinateSystemDescription() const {return coo
 
 //-----------------------------------------------------------------------------
 const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const {return world_to_path_;}
+
+//-----------------------------------------------------------------------------
+const std::optional<GeodeticCoordinates> & PathFile::getWGS84Anchor() const {return wgs84_anchor_;}
 
 }  // namespace core
 }  // namespace romea

@@ -24,6 +24,7 @@
 #include <vector>
 
 // romea
+#include "romea_core_common/geodesy/GeodeticCoordinates.hpp"
 #include "romea_core_path/Path2D.hpp"
 #include "romea_core_path/PathAnnotation.hpp"
 #include "romea_core_path/PathWayPoint2D.hpp"
@@ -45,6 +46,7 @@ public:
   const std::vector<std::vector<PathWayPoint2D>> & getWayPoints() const;
   const std::string & getCoordinateSystemDescription() const;
   const Eigen::Affine3d & getWorldToPathTransformation() const;
+  const std::optional<GeodeticCoordinates> & getWGS84Anchor() const;
   const Annotations & getAnnotations() const {return annotations_;}
 
 private:
@@ -59,6 +61,7 @@ private:
 private:
   std::string coordinate_system_;
   Eigen::Affine3d world_to_path_;
+  std::optional<GeodeticCoordinates> wgs84_anchor_;
   std::vector<std::vector<PathWayPoint2D>> way_points_;
   std::ifstream file_;
   Annotations annotations_;
