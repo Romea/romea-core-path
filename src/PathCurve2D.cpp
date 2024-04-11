@@ -164,10 +164,11 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
   //    bool have_root = false;
   //    curvilinearAbscissa = solver.greatestRealRoot(have_root);
 
-  if (std::isnan(coeff[1] / coeff[0])) {
-    double s = std::sqrt(
-      std::pow(vehiclePosition.x() - ax, 2.0) +
-      std::pow(vehiclePosition.y() - ay, 2.0));
+  if (std::abs(coeff[0]) < 1e-8) {
+    double dx = vehiclePosition.x() - ax;
+    double dy = vehiclePosition.y() - ay;
+    double s = std::sqrt(dx * dx + dy * dy);
+
     if (curvilinearAbscissaInterval_.inside(s)) {
       return s;
     }
