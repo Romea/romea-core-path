@@ -46,6 +46,10 @@ std::ostream & operator<<(std::ostream & os, const PathMatchedPoint2D & matchedP
   os << matchedPoint.frenetPose;
   os << "speed : " << matchedPoint.desiredSpeed << std::endl;
   os << "section index : " << matchedPoint.sectionIndex << std::endl;
+  os << "section minimal curvilinear abscissa : " <<
+    matchedPoint.sectionMinimalCurvilinearAbscissa << std::endl;
+  os << "section maximal curvilinear abscissa : " <<
+    matchedPoint.sectionMaximalCurvilinearAbscissa << std::endl;
   os << "curve index : " << matchedPoint.curveIndex;
   return os;
 }

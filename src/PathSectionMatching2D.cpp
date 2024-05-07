@@ -195,9 +195,12 @@ std::optional<PathMatchedPoint2D> match(
   const Pose2D & vehiclePose,
   const double & desiredSpeed)
 {
+  // std::cout << " search nearest curvilinear abscissa " << std::endl;
   auto nearestCurvilinearAbscissa = curve.findNearestCurvilinearAbscissa(vehiclePose.position);
 
   if (nearestCurvilinearAbscissa.has_value()) {
+
+    // std::cout << " has nearest curvilinear abscissa" << std::endl;
     double xp = curve.computeX(nearestCurvilinearAbscissa.value());
     double yp = curve.computeY(nearestCurvilinearAbscissa.value());
     double tangent = curve.computeTangent(nearestCurvilinearAbscissa.value());
