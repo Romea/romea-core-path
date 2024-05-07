@@ -50,6 +50,12 @@ void match_impl(
 
     if (matchedPoint.has_value()) {
       matchedPoint->sectionIndex = n;
+      matchedPoint->sectionMinimalCurvilinearAbscissa =
+        path.getSection(n).getCurvilinearAbscissa().initialValue();
+      matchedPoint->sectionMaximalCurvilinearAbscissa =
+        path.getSection(n).getCurvilinearAbscissa().finalValue();
+      matchedPoints.push_back(*matchedPoint);
+
       matchedPoints.push_back(*matchedPoint);
     }
   }
