@@ -158,23 +158,16 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
     (ax * cx + ay * cy - cx * vehiclePosition.x() - cy * vehiclePosition.y());
   coeff[3] = ax * bx + ay * by - bx * vehiclePosition.x() - by * vehiclePosition.y();
 
-  //  /// Using the Eigen library is very slow
-  //    Eigen::PolynomialSolver<double, Eigen::Dynamic> solver;
-  //    solver.compute(coeff);
-  //    bool have_root = false;
-  //    curvilinearAbscissa = solver.greatestRealRoot(have_root);
-
-  if (std::abs(coeff[0]) < 1e-8) {
-    double dx = vehiclePosition.x() - ax;
-    double dy = vehiclePosition.y() - ay;
-    double s = std::sqrt(dx * dx + dy * dy);
-
+  if (std::abs(coeff[2] - 1) < std::numeric_limits<float>::epsilon()) {
+    // linear interpolation
+    double s = std::sqrt(
+      std::pow(vehiclePosition.x() - ax, 2.0) +
+      std::pow(vehiclePosition.y() - ay, 2.0));
     if (curvilinearAbscissaInterval_.inside(s)) {
       return s;
     }
   } else {
-
-    // Using gsl
+    // cubic interpolation
     double root_0, root_1 = -100, root_2 = -100;
     int nb_roots = gsl_poly_solve_cubic(
       coeff[1] / coeff[0],
