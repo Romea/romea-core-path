@@ -16,9 +16,9 @@
 #define ROMEA_CORE_PATH__PATHMATCHEDPOINT2D_HPP_
 
 // std
+#include <optional>
 #include <ostream>
 #include <vector>
-#include <optional>
 
 // romea
 #include "romea_core_path/PathPosture2D.hpp"
