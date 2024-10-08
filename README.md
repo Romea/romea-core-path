@@ -1,0 +1,3 @@
+# Romea Core Path Library
+
+This library provides an implementation of a 2D trajectory representation for trajectory tracking in agricultural applications. It supports multi-section trajectories, allowing for complex maneuvers such as U-turns and reverse driving in headland areas. The library includes a set of algorithms (also known as **path matching**) to determine the vehicle's position (in Frenet coordinates) relative to the trajectory, which can be used to feed trajectory tracking algorithms. Additionally, it offers the possibility to annotate the trajectory to trigger specific actions (e.g., tool activation, sensor triggering, etc.).
