@@ -33,12 +33,11 @@ This project is released under the Apache License 2.0. See the LICENSE file for 
 
 ## **Authors**
 
-The Romea Core Localization RTLS library, written by **Jean Laneurit** and **Cyrille Pierre**, was developed during ANR Baudet Rob 2 and ANR Tiara projects. Several individuals contributed scientifically to the development of this library:
+The Romea Core Path library, written by **Jean Laneurit** and **Cyrille Pierre**, was developed during ANR Baudet Rob 2 and ANR Tiara projects. Several individuals contributed scientifically to the development of this library:
 
 **Jean Laneurit**  
 **Roland Lenain**  
 **Cyrille Pierre**  
-**Christophe Cariou**  
 **Vincent Rousseau**  
 **Benoît Thuilot**    
 
