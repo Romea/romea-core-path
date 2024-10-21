@@ -1,6 +1,6 @@
-# Romea Core Path Library
+# romea_core_path 
 
-This library provides an implementation of a 2D trajectory representation for trajectory tracking in agricultural applications. It supports multi-section trajectories, allowing for complex maneuvers such as U-turns and reverse driving in headland areas. The library includes a set of algorithms (also known as **path matching**) to determine the vehicle's position (in Frenet coordinates) relative to the trajectory, which can be used to feed trajectory tracking algorithms. Additionally, it offers the possibility to annotate the trajectory to trigger specific actions (e.g., tool activation, sensor triggering, etc.).
+This project is C++ library that provides an implementation of a 2D trajectory representation for trajectory tracking in agricultural applications. It supports multi-section trajectories, allowing for complex maneuvers such as U-turns and reverse driving in headland areas. The library includes a set of algorithms (also known as **path matching**) to determine the vehicle's position (in Frenet coordinates) relative to the trajectory, which can be used to feed trajectory tracking algorithms. Additionally, it offers the possibility to annotate the trajectory to trigger specific actions (e.g., tool activation, sensor triggering, etc.).
 
 ## **Usage**
 
@@ -33,7 +33,7 @@ This project is released under the Apache License 2.0. See the LICENSE file for 
 
 ## **Authors**
 
-The Romea Core Path library, written by **Jean Laneurit** and **Cyrille Pierre**, was developed during ANR Baudet Rob 2 and ANR Tiara projects. Several individuals contributed scientifically to the development of this library:
+The romea_core_path library, written by **Jean Laneurit** and **Cyrille Pierre**, was developed during ANR Baudet Rob 2 and ANR Tiara projects. Several individuals contributed scientifically to the development of this library:
 
 **Jean Laneurit**  
 **Roland Lenain**  
@@ -43,4 +43,4 @@ The Romea Core Path library, written by **Jean Laneurit** and **Cyrille Pierre**
 
 ## **Contact**
 
-If you have any questions or comments about Romea Core Path library, please contact **[Jean Laneurit](mailto:jean.laneurit@inrae.fr)** or **[Cyrille Pierre](mailto:cyrille.pierre@inrae.fr)**.
+If you have any questions or comments about romea_core_path library, please contact **[Jean Laneurit](mailto:jean.laneurit@inrae.fr)** or **[Cyrille Pierre](mailto:cyrille.pierre@inrae.fr)**.
