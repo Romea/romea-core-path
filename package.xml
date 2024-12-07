@@ -8,8 +8,13 @@
   <license>Apache License 2.0</license>
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+
+  <depend>romea_core_common</depend>
+  <depend>nlohmann-json-dev</depend>
+  <depend>libblas-dev</depend>
+  <depend>libgsl</depend>
+
   <export>
     <build_type>cmake</build_type>
   </export>
-  <depend>romea_core_common</depend>
 </package>
