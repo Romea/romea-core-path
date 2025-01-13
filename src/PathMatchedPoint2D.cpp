@@ -74,6 +74,17 @@ std::optional<PathMatchedPoint2D> findMatchedPointBySectionIndex(
 }
 
 //-----------------------------------------------------------------------------
+Eigen::Vector2d globalPosition(const PathMatchedPoint2D & matchedPoint)
+{
+  auto const & frenetPose = matchedPoint.frenetPose;
+  auto const & pathPosture = matchedPoint.pathPosture;
+
+  return Eigen::Vector2d(
+    pathPosture.position.x() - std::sin(pathPosture.course) * frenetPose.lateralDeviation,
+    pathPosture.position.y() + std::cos(pathPosture.course) * frenetPose.lateralDeviation);
+}
+
+//-----------------------------------------------------------------------------
 double direction(const PathMatchedPoint2D & matchedPoint)
 {
   return std::isfinite(matchedPoint.desiredSpeed) ? sign(matchedPoint.desiredSpeed) : 1;

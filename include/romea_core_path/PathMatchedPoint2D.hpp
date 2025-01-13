@@ -47,6 +47,8 @@ std::ostream & operator<<(std::ostream & os, const PathMatchedPoint2D & matchedP
 
 double direction(const PathMatchedPoint2D & matchedPoint);
 
+Eigen::Vector2d globalPosition(const PathMatchedPoint2D & matchedPoint);
+
 std::optional<PathMatchedPoint2D> findMatchedPointBySectionIndex(
   const std::vector<PathMatchedPoint2D> matchedPoints,
   const size_t & sectionIndex);
