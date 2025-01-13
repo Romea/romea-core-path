@@ -55,8 +55,6 @@ void match_impl(
       matchedPoint->sectionMaximalCurvilinearAbscissa =
         path.getSection(n).getCurvilinearAbscissa().finalValue();
       matchedPoints.push_back(*matchedPoint);
-
-      matchedPoints.push_back(*matchedPoint);
     }
   }
 }

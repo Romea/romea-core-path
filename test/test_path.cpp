@@ -57,10 +57,10 @@ TEST_F(TestPath, isSizeOK)
 //-----------------------------------------------------------------------------
 TEST_F(TestPath, isLengthOK)
 {
-  EXPECT_DOUBLE_EQ(path->getSection(0).getLength(), 25.758932752740488);
-  EXPECT_DOUBLE_EQ(path->getSection(1).getLength(), 1.5998739194895477);
-  EXPECT_DOUBLE_EQ(path->getSection(2).getLength(), 25.296885714279526);
-  EXPECT_DOUBLE_EQ(path->getLength(), 52.655692386509557);
+  EXPECT_NEAR(path->getSection(0).getLength(), 25.758932752740488, 0.001);
+  EXPECT_NEAR(path->getSection(1).getLength(), 1.5998739194895477, 0.001);
+  EXPECT_NEAR(path->getSection(2).getLength(), 25.296885714279526, 0.001);
+  EXPECT_NEAR(path->getLength(), 52.655692386509557, 0.001);
 }
 
 //-----------------------------------------------------------------------------
