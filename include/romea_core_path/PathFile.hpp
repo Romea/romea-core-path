@@ -47,16 +47,27 @@ public:
   const std::string & getCoordinateSystemDescription() const;
   const Eigen::Affine3d & getWorldToPathTransformation() const;
   const std::optional<GeodeticCoordinates> & getWGS84Anchor() const;
-  const Annotations & getAnnotations() const {return annotations_;}
+  const Annotations & getAnnotations() const { return annotations_; }
 
 private:
+  std::string getVersion_();
+
   void loadHeader_();
   void loadWayPoints_();
 
-  void loadV2_();
+  void loadV2_(const nlohmann::json & data);
   void loadHeaderV2_(const nlohmann::json & data);
   void loadWayPointsV2_(const nlohmann::json & data);
   void loadAnnotations(const nlohmann::json & data);
+
+  void loadV3_(const nlohmann::json & data);
+  void loadHeaderV3_(const nlohmann::json & data);
+  void loadWayPointsV3_(const nlohmann::json & data);
+  void loadRowLine_(
+    std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values);
+  void loadRowPath_(
+    std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values);
+  void loadInSections_(const std::vector<PathWayPoint2D> & input);
 
 private:
   std::string coordinate_system_;

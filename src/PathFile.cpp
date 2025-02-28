@@ -15,15 +15,15 @@
 // std
 #include <cstdio>
 #include <exception>
-#include <stdexcept>
 #include <map>
+#include <stdexcept>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 // romea
-#include "romea_core_path/PathFile.hpp"
 #include "romea_core_common/geodesy/ENUConverter.hpp"
+#include "romea_core_path/PathFile.hpp"
 
 // json
 #include "nlohmann/json.hpp"
@@ -44,20 +44,21 @@ PathFile::PathFile(const std::string & filename)
 : coordinate_system_(), world_to_path_(), wgs84_anchor_(), way_points_(), file_(filename)
 {
   if (file_.is_open()) {
-    if (endsWith(filename, ".traj")) {
-      loadV2_();
-    } else {
+    auto data = nlohmann::json::parse(file_);
+    std::string version = data["version"];
+    if (version == "1") {
       loadHeader_();
       loadWayPoints_();
+    } else if (version == "2") {
+      loadV2_(data);
+    } else if (version == "3") {
+      loadV3_(data);
+    } else {
+      throw(std::runtime_error("Version of path file " + filename + " not supported"));
     }
   } else {
     throw(std::runtime_error("Failed to open path file " + filename));
   }
-
-  //  if(revert)
-  //  {
-  //    std::reverse(std::begin(points_), std::end(points_));
-  //  }
 }
 
 //-----------------------------------------------------------------------------
@@ -75,9 +76,7 @@ void PathFile::loadHeader_()
     file_ >> reference_latitude >> reference_longitude >> reference_altitude;
 
     wgs84_anchor_ = makeGeodeticCoordinates(
-      reference_latitude / 180. * M_PI,
-      reference_longitude / 180. * M_PI,
-      reference_altitude);
+      reference_latitude / 180. * M_PI, reference_longitude / 180. * M_PI, reference_altitude);
 
     world_to_path_ = ENUConverter(*wgs84_anchor_).getEnuToEcefTransform();
   } else if (header.compare("ENU") == 0 || header.compare("PIXEL") == 0) {
@@ -136,14 +135,8 @@ void PathFile::loadWayPoints_()
 }
 
 //-----------------------------------------------------------------------------
-void PathFile::loadV2_()
+void PathFile::loadV2_(const nlohmann::json & data)
 {
-  auto data = nlohmann::json::parse(file_);
-
-  if (data["version"] != "2") {
-    throw std::runtime_error("Only version '2' of trajectory file is currently supported");
-  }
-
   loadHeaderV2_(data);
   loadWayPointsV2_(data);
   loadAnnotations(data);
@@ -217,9 +210,89 @@ void PathFile::loadAnnotations(const nlohmann::json & data)
   for (const auto & a : values) {
     if (a.contains("point_index")) {
       annotations_.insert(
-        std::pair<size_t, PathAnnotation>(
-          a["point_index"].get<std::size_t>(), a));
+        std::pair<size_t, PathAnnotation>(a["point_index"].get<std::size_t>(), a));
     }
+  }
+}
+
+void PathFile::loadV3_(const nlohmann::json & data)
+{
+  loadHeaderV3_(data);
+  loadWayPointsV3_(data);
+}
+
+void PathFile::loadHeaderV3_(const nlohmann::json & data)
+{
+  const auto & origin = data["origin"];
+  if (origin["type"] == "WGS84") {
+    const auto & coords = origin["coordinates"];
+    wgs84_anchor_ = makeGeodeticCoordinates(
+      coords["lat"].get<double>() / 180. * M_PI,
+      coords["lon"].get<double>() / 180. * M_PI,
+      coords["alt"].get<double>());
+
+    world_to_path_ = ENUConverter(*wgs84_anchor_).getEnuToEcefTransform();
+    coordinate_system_ = origin["type"];
+  } else {
+    throw(std::runtime_error("Only 'WGS84' origin type is currently supported"));
+  }
+}
+
+void PathFile::loadWayPointsV3_(const nlohmann::json & data)
+{
+  const auto & points = data["points"];
+
+  std::vector<PathWayPoint2D> tmp_waypoints;
+  for (const auto & segment : points) {
+    std::string segment_type = segment["segment_type"];
+    const auto & columns = segment["columns"];
+    const auto & values = segment["values"];
+    // way_points_.back().reserve(values.size());
+
+    if (segment_type == "row_path") {
+      loadRowPath_(tmp_waypoints, columns, values);
+      // } else if (segment_type == "row_line") {
+      //   loadRowLine_(columns, values);
+    }
+  }
+  loadInSections_(tmp_waypoints);
+}
+
+void PathFile::loadRowPath_(
+  std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values)
+{
+  std::map<std::string, std::size_t> col_indexes;
+  std::size_t i = 0;
+  for (const auto & col : columns) {
+    col_indexes[col] = i;
+    ++i;
+  }
+  bool has_speed = col_indexes.count("speed");
+  for (const auto & point : values) {
+    Eigen::Vector2d pos;
+    pos << point[col_indexes["x"]], point[col_indexes["y"]];
+    if (has_speed) {
+      tmp.emplace_back(pos, point[col_indexes["speed"]]);
+    } else {
+      tmp.emplace_back(pos);
+    }
+  }
+}
+
+void PathFile::loadInSections_(const std::vector<PathWayPoint2D> & input)
+{
+  int sign_curr = 0;
+  way_points_.emplace_back();
+  for (const auto & point : input) {
+    if (!sign_curr) {
+      if (point.desired_speed * point.desired_speed >= 1e-6) {
+        sign_curr = (point.desired_speed > 0) ? 1 : -1;
+      }
+    } else if (sign_curr * point.desired_speed < 0) {
+      sign_curr = -sign_curr;
+      way_points_.emplace_back();
+    }
+    way_points_.back().emplace_back(point);
   }
 }
 
@@ -230,13 +303,22 @@ const std::vector<std::vector<PathWayPoint2D>> & PathFile::getWayPoints() const
 }
 
 //-----------------------------------------------------------------------------
-const std::string & PathFile::getCoordinateSystemDescription() const {return coordinate_system_;}
+const std::string & PathFile::getCoordinateSystemDescription() const
+{
+  return coordinate_system_;
+}
 
 //-----------------------------------------------------------------------------
-const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const {return world_to_path_;}
+const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const
+{
+  return world_to_path_;
+}
 
 //-----------------------------------------------------------------------------
-const std::optional<GeodeticCoordinates> & PathFile::getWGS84Anchor() const {return wgs84_anchor_;}
+const std::optional<GeodeticCoordinates> & PathFile::getWGS84Anchor() const
+{
+  return wgs84_anchor_;
+}
 
 }  // namespace core
 }  // namespace romea
