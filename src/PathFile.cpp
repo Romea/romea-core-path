@@ -40,8 +40,13 @@ namespace core
 {
 
 //-----------------------------------------------------------------------------
-PathFile::PathFile(const std::string & filename)
-: coordinate_system_(), world_to_path_(), wgs84_anchor_(), way_points_(), file_(filename)
+PathFile::PathFile(const std::string & filename, const double min_spacing)
+: coordinate_system_(),
+  world_to_path_(),
+  wgs84_anchor_(),
+  way_points_(),
+  file_(filename),
+  min_spacing_(min_spacing)
 {
   if (file_.is_open()) {
     auto data = nlohmann::json::parse(file_);
@@ -174,7 +179,6 @@ void PathFile::loadWayPointsV2_(const nlohmann::json & data)
     col_indexes[col] = i;
     ++i;
   }
-  bool has_speed = col_indexes.count("speed");
 
   way_points_.reserve(values.size());
 
@@ -191,14 +195,7 @@ void PathFile::loadWayPointsV2_(const nlohmann::json & data)
       throw std::runtime_error("The first section index of the traj must be 0");
     }
 
-    Eigen::Vector2d pos;
-    pos << point[col_indexes["x"]], point[col_indexes["y"]];
-    if (has_speed) {
-      way_points_.back().emplace_back(pos, point[col_indexes["speed"]]);
-    } else {
-      way_points_.back().emplace_back(pos);
-    }
-
+    way_points_.back().emplace_back(PathWayPointFromJSON(col_indexes, point));
     ++i;
   }
 }
@@ -241,59 +238,119 @@ void PathFile::loadHeaderV3_(const nlohmann::json & data)
 void PathFile::loadWayPointsV3_(const nlohmann::json & data)
 {
   const auto & points = data["points"];
-
-  std::vector<PathWayPoint2D> tmp_waypoints;
+  way_points_.emplace_back();
   for (const auto & segment : points) {
     std::string segment_type = segment["segment_type"];
     const auto & columns = segment["columns"];
     const auto & values = segment["values"];
-    // way_points_.back().reserve(values.size());
-
+    //way_points_.back().reserve(values.size());
     if (segment_type == "row_path") {
-      loadRowPath_(tmp_waypoints, columns, values);
-      // } else if (segment_type == "row_line") {
-      //   loadRowLine_(columns, values);
+      loadRowPathV3_(columns, values);
+    } else if (segment_type == "row_line") {
+      loadRowLineV3_(columns, values);
+    } else if (segment_type == "turn_path") {
+      loadTurnPathV3_(columns, values);
     }
   }
-  loadInSections_(tmp_waypoints);
 }
 
-void PathFile::loadRowPath_(
-  std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadRowPathV3_(const nlohmann::json columns, const nlohmann::json values)
 {
+  // check if last section is backwards
+  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
+    way_points_.emplace_back();
+  }
+
   std::map<std::string, std::size_t> col_indexes;
   std::size_t i = 0;
   for (const auto & col : columns) {
     col_indexes[col] = i;
     ++i;
   }
-  bool has_speed = col_indexes.count("speed");
   for (const auto & point : values) {
-    Eigen::Vector2d pos;
-    pos << point[col_indexes["x"]], point[col_indexes["y"]];
-    if (has_speed) {
-      tmp.emplace_back(pos, point[col_indexes["speed"]]);
-    } else {
-      tmp.emplace_back(pos);
-    }
+    PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
+    // nan should pass
+    assert(!(new_point.desired_speed < 0));
+    way_points_.back().emplace_back(new_point);
   }
 }
 
-void PathFile::loadInSections_(const std::vector<PathWayPoint2D> & input)
+void PathFile::loadRowLineV3_(const nlohmann::json columns, const nlohmann::json values)
 {
-  int sign_curr = 0;
-  way_points_.emplace_back();
-  for (const auto & point : input) {
-    if (!sign_curr) {
-      if (point.desired_speed * point.desired_speed >= 1e-6) {
-        sign_curr = (point.desired_speed > 0) ? 1 : -1;
-      }
-    } else if (sign_curr * point.desired_speed < 0) {
-      sign_curr = -sign_curr;
-      way_points_.emplace_back();
-    }
-    way_points_.back().emplace_back(point);
+  // check if last section is backwards
+  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
+    way_points_.emplace_back();
   }
+
+  std::map<std::string, std::size_t> col_indexes;
+  std::size_t i = 0;
+  for (const auto & col : columns) {
+    col_indexes[col] = i;
+    ++i;
+  }
+
+  PathWayPoint2D start_point = PathWayPointFromJSON(col_indexes, values[0]);
+  // nan should pass
+  assert(!(start_point.desired_speed < 0));
+  for (i = 1; i < values.size(); ++i) {
+    const auto & end_value = values[i];
+
+    PathWayPoint2D end_point = PathWayPointFromJSON(col_indexes, end_value);
+    // nan should pass
+    assert(!(end_point.desired_speed < 0));
+    const auto line_points = linearInterpolate_(start_point, end_point);
+
+    way_points_.back().insert(way_points_.back().end(), line_points.cbegin(), line_points.cend());
+    start_point = end_point;
+  }
+}
+
+void PathFile::loadTurnPathV3_(const nlohmann::json columns, const nlohmann::json values)
+{
+  int curr_sign = 1;
+  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
+    curr_sign = -1;
+  }
+
+  std::map<std::string, std::size_t> col_indexes;
+  std::size_t i = 0;
+  for (const auto & col : columns) {
+    col_indexes[col] = i;
+    ++i;
+  }
+  for (const auto & point : values) {
+    PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
+    double new_speed = new_point.desired_speed;
+    // not a nan and different sign
+    if (new_speed == new_speed && curr_sign * new_speed < 0) {
+      way_points_.emplace_back();
+      curr_sign = -curr_sign;
+    }
+    way_points_.back().emplace_back(new_point);
+  }
+}
+
+std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
+  const PathWayPoint2D start, const PathWayPoint2D end)
+{
+  bool const_speed = (start.desired_speed == end.desired_speed);
+  Eigen::Vector2d dir = (end.position - start.position).normalized();
+  double step = min_spacing_ / 10;
+  std::vector<PathWayPoint2D> line_points;
+
+  Eigen::Vector2d pos = start.position;
+
+  while ((pos - start.position).norm() < (end.position - start.position).norm()) {
+    if (const_speed) {
+      line_points.emplace_back(pos, start.desired_speed);
+    } else {
+      line_points.emplace_back(pos);
+    }
+    pos += dir * step;
+  }
+
+  line_points.emplace_back(end);
+  return line_points;
 }
 
 //-----------------------------------------------------------------------------
@@ -318,6 +375,22 @@ const Eigen::Affine3d & PathFile::getWorldToPathTransformation() const
 const std::optional<GeodeticCoordinates> & PathFile::getWGS84Anchor() const
 {
   return wgs84_anchor_;
+}
+
+PathWayPoint2D PathWayPointFromJSON(
+  std::map<std::string, std::size_t> col_indexes, const nlohmann::json & point)
+{
+  bool has_speed = col_indexes.count("speed");
+
+  PathWayPoint2D path_point;
+  Eigen::Vector2d pos;
+  pos << point[col_indexes["x"]], point[col_indexes["y"]];
+  if (has_speed) {
+    path_point = PathWayPoint2D(pos, point[col_indexes["speed"]]);
+  } else {
+    path_point = PathWayPoint2D(pos);
+  }
+  return path_point;
 }
 
 }  // namespace core

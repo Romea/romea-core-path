@@ -41,7 +41,7 @@ public:
 
 public:
   PathFile();
-  explicit PathFile(const std::string & filename);
+  explicit PathFile(const std::string & filename, const double min_spacing);
 
   const std::vector<std::vector<PathWayPoint2D>> & getWayPoints() const;
   const std::string & getCoordinateSystemDescription() const;
@@ -63,11 +63,11 @@ private:
   void loadV3_(const nlohmann::json & data);
   void loadHeaderV3_(const nlohmann::json & data);
   void loadWayPointsV3_(const nlohmann::json & data);
-  void loadRowLine_(
-    std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values);
-  void loadRowPath_(
-    std::vector<PathWayPoint2D> & tmp, const nlohmann::json columns, const nlohmann::json values);
-  void loadInSections_(const std::vector<PathWayPoint2D> & input);
+  void loadRowLineV3_(const nlohmann::json columns, const nlohmann::json values);
+  void loadRowPathV3_(const nlohmann::json columns, const nlohmann::json values);
+  void loadTurnPathV3_(const nlohmann::json columns, const nlohmann::json values);
+  std::vector<PathWayPoint2D> linearInterpolate_(
+    const PathWayPoint2D start, const PathWayPoint2D end);
 
 private:
   std::string coordinate_system_;
@@ -75,8 +75,11 @@ private:
   std::optional<GeodeticCoordinates> wgs84_anchor_;
   std::vector<std::vector<PathWayPoint2D>> way_points_;
   std::ifstream file_;
+  double min_spacing_;
   Annotations annotations_;
 };
+PathWayPoint2D PathWayPointFromJSON(
+  std::map<std::string, std::size_t> col_indexes, const nlohmann::json & point);
 
 }  // namespace core
 }  // namespace romea
