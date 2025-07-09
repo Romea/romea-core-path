@@ -62,7 +62,7 @@ void match_impl(
       // std::cout << "  match found! lat dist: " << matchedPoint->frenetPose.lateralDeviation;
     }
 
-    std::cout << "\n";
+    // std::cout << "\n";
   }
 
   // only add the closest point
@@ -79,7 +79,7 @@ void match_impl(
     matchedPoints.push_back(*closest_point_it);
   }
 
-  std::cout.flush();
+  // std::cout.flush();
 }
 
 // //-----------------------------------------------------------------------------
