@@ -13,11 +13,10 @@
 // limitations under the License.
 
 // std
+#include <algorithm>
 #include <cassert>
-#include <iterator>
 #include <iostream>
 #include <list>
-#include <limits>
 #include <vector>
 
 // romea
@@ -31,6 +30,7 @@ namespace
 {
 
 //----------------------------------------------------------------------------
+// try to match for the first time (no current matched points)
 void match_impl(
   const romea::core::Path2D & path,
   const romea::core::Pose2D & vehiclePose,
@@ -39,8 +39,11 @@ void match_impl(
   const double & researchRadius,
   std::list<romea::core::PathMatchedPoint2D> & matchedPoints)
 {
+  std::vector<romea::core::PathMatchedPoint2D> all_points;
+
+  // std::cout << "match_impl: for the first time (no current matched point)\n";
   for (size_t n = 0; n < path.size(); ++n) {
-    // std::cout << "\n global match section " << n << std::endl;
+    // std::cout << "  - section index: " << n;
     auto matchedPoint = match(
       path.getSection(n),
       vehiclePose,
@@ -54,9 +57,29 @@ void match_impl(
         path.getSection(n).getCurvilinearAbscissa().initialValue();
       matchedPoint->sectionMaximalCurvilinearAbscissa =
         path.getSection(n).getCurvilinearAbscissa().finalValue();
-      matchedPoints.push_back(*matchedPoint);
+      // matchedPoints.push_back(*matchedPoint);
+      all_points.push_back(*matchedPoint);
+      // std::cout << "  match found! lat dist: " << matchedPoint->frenetPose.lateralDeviation;
     }
+
+    std::cout << "\n";
   }
+
+  // only add the closest point
+  if (!all_points.empty()) {
+    auto closest_point_it = std::min_element(
+      begin(all_points),
+      end(all_points),
+      [] (auto const & a, auto const & b) {
+        return std::abs(a.frenetPose.lateralDeviation) < std::abs(b.frenetPose.lateralDeviation);
+      }
+    );
+    // std::cout << "closest point: " << closest_point_it->sectionIndex << "\n";
+
+    matchedPoints.push_back(*closest_point_it);
+  }
+
+  std::cout.flush();
 }
 
 // //-----------------------------------------------------------------------------
