@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // std
+#include <cmath>
 #include <optional>
 #include <algorithm>
 #include <cassert>
@@ -22,6 +23,7 @@
 
 // romea
 #include "romea_core_path/PathSectionMatching2D.hpp"
+#include <Eigen/src/Core/Matrix.h>
 #include "romea_core_common/math/EulerAngles.hpp"
 #include "romea_core_common/math/Algorithm.hpp"
 
@@ -38,18 +40,65 @@ size_t findNearestCurveIndex(
 {
   assert(indexRange.upper() < section.size());
 
-  const auto X = section.getX();
-  const auto Y = section.getY();
+  const auto & X = section.getX();
+  const auto & Y = section.getY();
 
   size_t nearestPointIndex = section.size();
-  double minimalDistance = researchRadius;
+  double minSqDist = researchRadius * researchRadius;
 
   for (size_t n = indexRange.lower(); n <= indexRange.upper(); ++n) {
-    double distance = (vehiclePosition - Eigen::Vector2d(X[n], Y[n])).norm();
+    double sqDist = (vehiclePosition - Eigen::Vector2d(X[n], Y[n])).squaredNorm();
 
-    if (distance < minimalDistance) {
-      minimalDistance = distance;
+    if (sqDist < minSqDist) {
+      minSqDist = sqDist;
       nearestPointIndex = n;
+    }
+  }
+
+  return nearestPointIndex;
+}
+
+/// Find the nearest point to the given pose while taking orientation into account.
+/// The point orientation is computed using the direction to the next point.
+/// This function rejects all the points that do not match the pose orientation.
+/// If the speed is negative, it will match only if the pose orientation is the opposite.
+size_t findNearestOrientedCurveIndex(
+  const romea::core::PathSection2D & section,
+  const romea::core::Pose2D & pose,
+  const romea::core::Interval<size_t> indexRange,
+  double researchRadius)
+{
+  assert(indexRange.upper() < section.size());
+
+  const auto & x = section.getX();
+  const auto & y = section.getY();
+  const auto & speeds = section.getSpeeds();
+  Eigen::Vector2d dir{std::cos(pose.yaw), std::sin(pose.yaw)};
+
+  size_t nearestPointIndex = section.size();
+  double minSqDist = researchRadius * researchRadius;
+
+  // ensure that the section contains at least 2 points
+  if (indexRange.width() < 2) {
+    return nearestPointIndex;
+  }
+
+  Eigen::Vector2d curSectionDir;
+  for (size_t n = indexRange.lower(); n <= indexRange.upper(); ++n) {
+    Eigen::Vector2d point{x[n], y[n]};
+    double sqDist = (pose.position - point).squaredNorm();
+
+    if (sqDist < minSqDist) {
+      // this condition keeps the same direction than the previous one for the last point
+      if (n < indexRange.upper()) {
+        curSectionDir = Eigen::Vector2d{x[n+1], y[n+1]} - point;
+      }
+
+      // if the pose orientation is the same as the section or the opposite if the speed is negative
+      if (std::signbit(dir.dot(curSectionDir)) == std::signbit(speeds[n])) {
+        minSqDist = sqDist;
+        nearestPointIndex = n;
+      }
     }
   }
 
@@ -68,9 +117,9 @@ std::optional<romea::core::PathMatchedPoint2D> match_impl(
 {
   std::optional<romea::core::PathMatchedPoint2D> matchedPoint;
 
-  size_t nearestCurveIndex = findNearestCurveIndex(
+  size_t nearestCurveIndex = findNearestOrientedCurveIndex(
     section,
-    vehiclePose.position,
+    vehiclePose,
     rangeIndex,
     researchRadius);
 
