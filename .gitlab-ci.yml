@@ -1,7 +1,6 @@
 include:
-  - project: "jean.laneurit/ros_gitlab_ci"
+  - project: "tscf/ros2/ros_gitlab_ci"
     file: ".gitlab-ci.yml"
-
 
 variables:
   PKGS_TO_BUILD_TEST: "romea_core_path"

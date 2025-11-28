@@ -1,4 +1,4 @@
 repositories:
     romea_core/romea_common:
         type: git
-        url: git@forge.inrae.fr:romea_core/romea_common.git
+        url: https://github.com/Romea/romea-core-common.git
