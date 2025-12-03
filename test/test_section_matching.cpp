@@ -25,6 +25,29 @@
 #include "../test/test_helper.h"
 #include "test_utils.hpp"
 
+std::unique_ptr<romea::core::Path2D> makeUturnPath(
+  double speed = std::numeric_limits<double>::quiet_NaN())
+{
+  std::vector<std::vector<romea::core::PathWayPoint2D>> wayPointLists;
+  auto & waypoints = wayPointLists.emplace_back();
+
+  // line (0,0) -> (4,0)
+  for (double x = 0; x < 4.0; x += 0.1) {
+    waypoints.emplace_back(Eigen::Vector2d{x, 0.}, speed);
+  }
+  // half circle (4,0) -> (4,2)
+  for (double angle = -M_PI_2; angle < M_PI_2; angle += M_PI / 20.) {
+    waypoints.emplace_back(Eigen::Vector2d{4. + std::cos(angle), 1. + std::sin(angle)}, speed);
+  }
+  // line (4,2) -> (0,2)
+  for (double x = 4; x > -1e-3; x -= 0.1) {
+    waypoints.emplace_back(Eigen::Vector2d{x, 2.}, speed);
+  }
+
+  auto path = std::make_unique<romea::core::Path2D>(wayPointLists, 2);
+  return path;
+}
+
 class TestSectionMatching : public ::testing::Test
 {
 public:
@@ -264,6 +287,49 @@ TEST_F(TestSectionMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMa
 
   EXPECT_EQ(firstMatchedPoint.has_value(), true);
   EXPECT_EQ(secondMatchedPoint.has_value(), false);
+}
+
+TEST_F(TestSectionMatching, invertedRobotOrientationAtTheClosestPoint)
+{
+  auto path = makeUturnPath();
+  const auto & section = path->getSections().front();
+  romea::core::Pose2D pose;
+  pose.position << 1., 0.99;  // the point is close to the first line of the path
+  pose.yaw = -M_PI;
+  double speed = 1.;
+  double timeHorizon = 1.;
+
+  auto matchedPoint = romea::core::match(section, pose, speed, timeHorizon, maximalRadiusResearch);
+  ASSERT_TRUE(matchedPoint);
+
+  std::size_t index = matchedPoint->curveIndex;
+  EXPECT_NEAR(section.getX()[index], 1., 1e-3);
+  EXPECT_NEAR(section.getY()[index], 2., 1e-3);
+  // EXPECT_GT(matchedPoint->frenetPose.lateralDeviation, 1.);
+}
+
+TEST_F(TestSectionMatching, invertedRobotOrientationAtTheClosestPointNegativeSpeedPath)
+{
+  auto path = makeUturnPath(-1.);
+  const auto & section = path->getSections().front();
+
+  // for (std::size_t i = 0; i < section.size(); ++i) {
+  //   std::cout << section.getX()[i] << " " << section.getY()[i] << std::endl;
+  // }
+
+  romea::core::Pose2D pose;
+  pose.position << 1., 1.01;  // the point is close to the second line of the path
+  pose.yaw = -M_PI;
+  double speed = -1.;
+  double timeHorizon = 1.;
+
+  auto matchedPoint = romea::core::match(section, pose, speed, timeHorizon, maximalRadiusResearch);
+  ASSERT_TRUE(matchedPoint);
+
+  std::size_t index = matchedPoint->curveIndex;
+  EXPECT_NEAR(section.getX()[index], 1., 1e-3);
+  EXPECT_NEAR(section.getY()[index], 0., 1e-3);
+  EXPECT_GT(matchedPoint->frenetPose.lateralDeviation, 1.);
 }
 
 //-----------------------------------------------------------------------------

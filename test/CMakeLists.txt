@@ -29,4 +29,7 @@ target_link_libraries(${PROJECT_NAME}_test_path_matching ${PROJECT_NAME} GTest::
 target_compile_options(${PROJECT_NAME}_test_path_matching PRIVATE -std=c++17)
 add_test(test_path_matching ${PROJECT_NAME}_test_path_matching)
 
-
+add_executable(${PROJECT_NAME}_test_curve2d test_curve2d.cpp)
+target_link_libraries(${PROJECT_NAME}_test_curve2d ${PROJECT_NAME} GTest::GTest GTest::Main)
+target_compile_options(${PROJECT_NAME}_test_curve2d PRIVATE -std=c++17)
+add_test(test_curve2d ${PROJECT_NAME}_test_curve2d)

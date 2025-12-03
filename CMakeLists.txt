@@ -33,7 +33,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${romea_core_common_INCLUDE_DIRS})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
-  -Wall -Wextra -O3 -std=c++17)
+  -Wall -Wextra -std=c++17)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   romea_core_common::romea_core_common)

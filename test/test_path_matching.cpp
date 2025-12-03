@@ -12,28 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cmath>
+#include <limits>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 // gtest
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // romea
+#include "romea_core_path/Path2D.hpp"
 #include "romea_core_path/PathMatching2D.hpp"
 
 // local
 #include "../test/test_helper.h"
+#include "romea_core_path/PathSectionMatching2D.hpp"
 #include "test_utils.hpp"
 
 class TestPathMatching : public ::testing::Test
 {
 public:
-  TestPathMatching()
-  : maximalRadiusResearch(10),
-    timeHorizon(0.2)
-  {
-  }
+  TestPathMatching() : maximalRadiusResearch(10), timeHorizon(0.2) {}
 
   void load(const std::string & path_name)
   {
@@ -59,12 +59,8 @@ TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleIsStopped)
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = 0;
 
-  auto matchedPoints = romea::core::match(
-    *path,
-    vehiclePose,
-    vehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto matchedPoints =
+    romea::core::match(*path, vehiclePose, vehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   ASSERT_EQ(matchedPoints.size(), 1);
   EXPECT_EQ(matchedPoints.front().sectionIndex, 0);
@@ -81,12 +77,8 @@ TEST_F(TestPathMatching, testGlobalMatchingOKWhenVehicleGoesForward)
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = 1.;
 
-  auto matchedPoints = romea::core::match(
-    *path,
-    vehiclePose,
-    vehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto matchedPoints =
+    romea::core::match(*path, vehiclePose, vehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   ASSERT_EQ(matchedPoints.size(), 1);
   EXPECT_EQ(matchedPoints.front().sectionIndex, 0);
@@ -103,12 +95,8 @@ TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleGoesBackward)
   vehiclePose.yaw = 0.278;
   double vehicleSpeed = -1.;
 
-  auto matchedPoints = romea::core::match(
-    *path,
-    vehiclePose,
-    vehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto matchedPoints =
+    romea::core::match(*path, vehiclePose, vehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   ASSERT_EQ(matchedPoints.size(), 1);
   EXPECT_EQ(matchedPoints.front().sectionIndex, 0);
@@ -125,16 +113,10 @@ TEST_F(TestPathMatching, testGlobalMatchingFailedWhenVehicleIsToFarFromPath)
   vehiclePose.yaw = -0.8;
   double vehicleSpeed = 1.;
 
-  auto matchedPoints = match(
-    *path,
-    vehiclePose,
-    vehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto matchedPoints = match(*path, vehiclePose, vehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   ASSERT_EQ(matchedPoints.empty(), true);
 }
-
 
 //-----------------------------------------------------------------------------
 TEST_F(TestPathMatching, testLocalMatchingOK)
@@ -152,12 +134,8 @@ TEST_F(TestPathMatching, testLocalMatchingOK)
   secondVehiclePose.yaw = -0.4;
   double secondVehicleSpeed = 1.;
 
-  auto firstMatchedPoints = match(
-    *path,
-    firstVehiclePose,
-    firstVehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto firstMatchedPoints =
+    match(*path, firstVehiclePose, firstVehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   auto secondMatchedPoints = match(
     *path,
@@ -194,12 +172,7 @@ TEST_F(TestPathMatching, testGlobalMatchingInBird)
   pose.yaw = 1.0595642624260422;
   double speed = 0.86174230688888409;
 
-  auto matchedPoints = romea::core::match(
-    *path,
-    pose,
-    speed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto matchedPoints = romea::core::match(*path, pose, speed, timeHorizon, maximalRadiusResearch);
 
   EXPECT_EQ(matchedPoints.size(), 1);
   EXPECT_EQ(matchedPoints.front().sectionIndex, 0);
@@ -222,12 +195,8 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
   secondVehiclePose.yaw = -1.2;
   double secondVehicleSpeed = 1.;
 
-  auto firstMatchedPoints = match(
-    *path,
-    firstVehiclePose,
-    firstVehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto firstMatchedPoints =
+    match(*path, firstVehiclePose, firstVehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   auto secondMatchedPoints = match(
     *path,
@@ -259,7 +228,6 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
     secondMatchedPoints.back().frenetPose.curvilinearAbscissa);
 }
 
-
 //-----------------------------------------------------------------------------
 TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
 {
@@ -276,12 +244,8 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
   secondVehiclePose.yaw = -1.2;
   double secondVehicleSpeed = -1.;
 
-  auto firstMatchedPoints = match(
-    *path,
-    firstVehiclePose,
-    firstVehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto firstMatchedPoints =
+    match(*path, firstVehiclePose, firstVehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   auto secondMatchedPoints = match(
     *path,
@@ -338,12 +302,8 @@ TEST_F(TestPathMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMatch
   secondVehiclePose.yaw = -1.2;
   double secondVehicleSpeed = -11.;
 
-  auto firstMatchedPoints = match(
-    *path,
-    firstVehiclePose,
-    firstVehicleSpeed,
-    timeHorizon,
-    maximalRadiusResearch);
+  auto firstMatchedPoints =
+    match(*path, firstVehiclePose, firstVehicleSpeed, timeHorizon, maximalRadiusResearch);
 
   auto secondMatchedPoints = match(
     *path,
@@ -393,7 +353,6 @@ TEST_F(TestPathMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMatch
 //  EXPECT_EQ(secondMatchedPoint->curveIndex,16);
 //  EXPECT_GT(secondMatchedPoint->frenetPose.curvilinearAbscissa,path.getCurvilinearAbscissa().vector()[2]);
 //}
-
 
 ////-----------------------------------------------------------------------------
 // TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerrate2)
