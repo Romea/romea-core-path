@@ -54,11 +54,11 @@ TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, lineY)
 {
   romea::core::PathSection2D section{1.};
   for (double y = 0.; y < 100.01; y += .1) {
-    section.addWayPoint({{y, 0.}});
+    section.addWayPoint({{0., y}});
   }
 
   Eigen::Vector2d pos{0., 90.};
-  auto index = section.findIndex(pos.y());
+  auto index = section.findIndex(pos.y()) - 1;
   auto curve = section.getCurve(index);
 
   for (double x = -10.; x < 10.1; x += 1.) {
@@ -107,6 +107,28 @@ TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, smallLineXFar)
     auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
     ASSERT_TRUE(abscissa);
     EXPECT_NEAR(*abscissa, length / 2., 1e-2);
+  }
+}
+
+TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, circle)
+{
+  Eigen::Vector2d center{-4893., 3972};
+  double radius = 6.;
+  double step_angle = 0.1 / radius;
+  romea::core::PathSection2D section{1.};
+  for (double a = 0.; a < M_PI; a += step_angle) {
+    section.addWayPoint({center + radius * Eigen::Vector2d{std::cos(a), std::sin(a)}});
+  }
+
+  Eigen::Vector2d pos = center + Eigen::Vector2d{0., radius};
+  auto index = section.findIndex(radius * M_PI_2);
+  auto curve = section.getCurve(index);
+
+  for (double y = -3.; y < 3.01; y += 0.5) {
+    pos.y() = y;
+    auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+    ASSERT_TRUE(abscissa);
+    EXPECT_NEAR(*abscissa, radius * M_PI_2, 1e-2);
   }
 }
 

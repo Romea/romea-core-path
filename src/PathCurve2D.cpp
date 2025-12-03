@@ -27,6 +27,7 @@
 
 // romea
 #include "romea_core_path/PathCurve2D.hpp"
+#include <Eigen/src/Core/Matrix.h>
 
 namespace
 {
@@ -104,6 +105,9 @@ bool PathCurve2D::estimate(
   indexInterval_ = indexInterval;
   curvilinearAbscissaInterval_ = curvilinearAbscissaInterval;
 
+  auto center_index = indexInterval.center();
+  origin_ << X[center_index] , Y[center_index];
+
   Eigen::Map<const Eigen::ArrayXd> Xmap(
     X.data() + indexInterval.lower(), indexInterval.width() + 1);
   Eigen::Map<const Eigen::ArrayXd> Ymap(
@@ -151,9 +155,14 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
 
   if (std::abs(coeff[2] - 1) < std::numeric_limits<float>::epsilon()) {
     // linear interpolation
-    double dx = vehiclePosition.x() - ax;
-    double dy = vehiclePosition.y() - ay;
-    double s = std::sqrt(dx * dx + dy * dy);
+    // double dx = vehiclePosition.x() - ax;
+    // double dy = vehiclePosition.y() - ay;
+    // double s = std::sqrt(dx * dx + dy * dy);
+
+    // project the point to the line
+    auto line_dir = Eigen::Vector2d{bx, by}.normalized();
+    double ds = line_dir.dot(vehiclePosition - origin_);
+    double s = curvilinearAbscissaInterval_.center() + ds;
     if (curvilinearAbscissaInterval_.inside(s)) {
       return s;
     }

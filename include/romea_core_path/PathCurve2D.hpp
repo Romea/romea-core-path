@@ -63,6 +63,7 @@ public:
 private:
   Eigen::Array3d fxPolynomCoefficient_;
   Eigen::Array3d fyPolynomCoefficient_;
+  Eigen::Vector2d origin_;
 
   Interval<size_t> indexInterval_;
   Interval<double> curvilinearAbscissaInterval_;
