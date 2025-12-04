@@ -26,8 +26,8 @@
 #include "gsl/gsl_poly.h"
 
 // romea
+
 #include "romea_core_path/PathCurve2D.hpp"
-#include <Eigen/src/Core/Matrix.h>
 
 namespace
 {
@@ -106,7 +106,8 @@ bool PathCurve2D::estimate(
   curvilinearAbscissaInterval_ = curvilinearAbscissaInterval;
 
   auto center_index = indexInterval.center();
-  origin_ << X[center_index] , Y[center_index];
+  origin_ << X[center_index], Y[center_index];
+  originCurvilinearAbscissa_ = S[center_index];
 
   Eigen::Map<const Eigen::ArrayXd> Xmap(
     X.data() + indexInterval.lower(), indexInterval.width() + 1);
@@ -154,15 +155,10 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
   coeff[3] = ax * bx + ay * by - bx * vehiclePosition.x() - by * vehiclePosition.y();
 
   if (std::abs(coeff[2] - 1) < std::numeric_limits<float>::epsilon()) {
-    // linear interpolation
-    // double dx = vehiclePosition.x() - ax;
-    // double dy = vehiclePosition.y() - ay;
-    // double s = std::sqrt(dx * dx + dy * dy);
-
-    // project the point to the line
+    // project the point to the line and add this length to the current curvilinear abscissa
     auto line_dir = Eigen::Vector2d{bx, by}.normalized();
     double ds = line_dir.dot(vehiclePosition - origin_);
-    double s = curvilinearAbscissaInterval_.center() + ds;
+    double s = originCurvilinearAbscissa_ + ds;
     if (curvilinearAbscissaInterval_.inside(s)) {
       return s;
     }
@@ -191,15 +187,15 @@ std::optional<double> PathCurve2D::findNearestCurvilinearAbscissa(
 //-----------------------------------------------------------------------------
 double PathCurve2D::computeX(const double & curvilinearAbscissa) const
 {
-  return fxPolynomCoefficient_[2] * std::pow(curvilinearAbscissa, 2) +
-         fxPolynomCoefficient_[1] * curvilinearAbscissa + fxPolynomCoefficient_[0];
+  double s = curvilinearAbscissa;
+  return fxPolynomCoefficient_[0] + s * (fxPolynomCoefficient_[1] + s * fxPolynomCoefficient_[2]);
 }
 
 //-----------------------------------------------------------------------------
 double PathCurve2D::computeY(const double & curvilinearAbscissa) const
 {
-  return fyPolynomCoefficient_[2] * std::pow(curvilinearAbscissa, 2) +
-         fyPolynomCoefficient_[1] * curvilinearAbscissa + fyPolynomCoefficient_[0];
+  double s = curvilinearAbscissa;
+  return fyPolynomCoefficient_[0] + s * (fyPolynomCoefficient_[1] + s * fyPolynomCoefficient_[2]);
 }
 
 //-----------------------------------------------------------------------------

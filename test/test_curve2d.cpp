@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// std
-#include <memory>
-#include <vector>
-
 // gtest
 #include "gtest/gtest.h"
 
@@ -58,7 +54,7 @@ TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, lineY)
   }
 
   Eigen::Vector2d pos{0., 90.};
-  auto index = section.findIndex(pos.y()) - 1;
+  auto index = section.findIndex(pos.y());
   auto curve = section.getCurve(index);
 
   for (double x = -10.; x < 10.1; x += 1.) {
@@ -91,20 +87,62 @@ TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, diagonal)
 
 TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, smallLineXFar)
 {
-  double start = 98.;
+  double start = 2846;
   double length = 4.;
   romea::core::PathSection2D section{1.};
   for (double x = start; x < start + length + 1e-2; x += .1) {
-    section.addWayPoint({{x, 0.}});
+    section.addWayPoint({{x, -4928.}});
   }
 
   Eigen::Vector2d pos{start + length / 2, 0.};
   auto index = section.findIndex(length / 2);
   auto curve = section.getCurve(index);
 
-  for (double y = -10.; y < 10.1; y += 1.) {
-    pos.y() = y;
-    auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  for (double offset = -10.; offset < 10.1; offset += 1.) {
+    Eigen::Vector2d p = pos + Eigen::Vector2d{0., offset};
+    auto abscissa = curve.findNearestCurvilinearAbscissa(p);
+    ASSERT_TRUE(abscissa);
+    EXPECT_NEAR(*abscissa, length / 2., 1e-2);
+  }
+}
+
+TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, smallLineYFar)
+{
+  double start = 873;
+  double length = 12.;
+  romea::core::PathSection2D section{1.};
+  for (double y = start; y < start + length + 1e-2; y += .1) {
+    section.addWayPoint({{439., y}});
+  }
+
+  Eigen::Vector2d pos{0., start + length / 2};
+  auto index = section.findIndex(length / 2);
+  auto curve = section.getCurve(index);
+
+  for (double offset = -10.; offset < 10.1; offset += 1.) {
+    Eigen::Vector2d p = pos + Eigen::Vector2d{offset, 0.};
+    auto abscissa = curve.findNearestCurvilinearAbscissa(p);
+    ASSERT_TRUE(abscissa);
+    EXPECT_NEAR(*abscissa, length / 2., 1e-2);
+  }
+}
+
+TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, lineXNegative)
+{
+  double start = -100;
+  double length = 7.;
+  romea::core::PathSection2D section{1.};
+  for (double x = start; x > start - length - 1e-2; x -= .1) {
+    section.addWayPoint({{x, -20.}});
+  }
+
+  Eigen::Vector2d pos{start - length / 2, 0.};
+  auto index = section.findIndex(length / 2);
+  auto curve = section.getCurve(index);
+
+  for (double offset = -10.; offset < 10.1; offset += 1.) {
+    Eigen::Vector2d p = pos + Eigen::Vector2d{0., offset};
+    auto abscissa = curve.findNearestCurvilinearAbscissa(p);
     ASSERT_TRUE(abscissa);
     EXPECT_NEAR(*abscissa, length / 2., 1e-2);
   }
@@ -130,6 +168,87 @@ TEST_F(InfluenceOfLateralDeviationOnCurvilinearAbscissa, circle)
     ASSERT_TRUE(abscissa);
     EXPECT_NEAR(*abscissa, radius * M_PI_2, 1e-2);
   }
+}
+
+//-----------------------------------------------------------------------------
+struct CurvesAtExtremities : ::testing::Test
+{
+  void SetUp() override
+  {
+    Eigen::Vector2d start{246., -17.};
+    double radius = 4.;
+    for (double t = 0.; t < 20; t += 0.07 / radius) {
+      section.addWayPoint({start + Eigen::Vector2d{radius * std::cos(t), radius * t}});
+    }
+  }
+
+  romea::core::PathSection2D section{1.};
+};
+
+TEST_F(CurvesAtExtremities, beginning)
+{
+  std::size_t index = 0;
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
+}
+
+TEST_F(CurvesAtExtremities, nearBeginning)
+{
+  std::size_t index = 4;
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
+}
+
+TEST_F(CurvesAtExtremities, end)
+{
+  std::size_t index = section.size() - 1;
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
+}
+
+TEST_F(CurvesAtExtremities, nearEnd)
+{
+  std::size_t index = section.size() - 6;
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
+}
+
+TEST_F(CurvesAtExtremities, middle)
+{
+  std::size_t index = section.size() >> 1;
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
+}
+
+TEST_F(CurvesAtExtremities, middle2)
+{
+  std::size_t index = 107 + (section.size() >> 1);
+  Eigen::Vector2d pos = Eigen::Vector2d{section.getX()[index], section.getY()[index]};
+  auto curve = section.getCurve(index);
+
+  auto abscissa = curve.findNearestCurvilinearAbscissa(pos);
+  ASSERT_TRUE(abscissa);
+  EXPECT_NEAR(*abscissa, section.getCurvilinearAbscissa()[index], 1e-3);
 }
 
 //-----------------------------------------------------------------------------

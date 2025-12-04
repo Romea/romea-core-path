@@ -294,7 +294,7 @@ TEST_F(TestSectionMatching, invertedRobotOrientationAtTheClosestPoint)
   auto path = makeUturnPath();
   const auto & section = path->getSections().front();
   romea::core::Pose2D pose;
-  pose.position << 1., 0.99;  // the point is close to the first line of the path
+  pose.position << 0.5, 0.99;  // the point is close to the first line of the path
   pose.yaw = -M_PI;
   double speed = 1.;
   double timeHorizon = 1.;
@@ -303,9 +303,9 @@ TEST_F(TestSectionMatching, invertedRobotOrientationAtTheClosestPoint)
   ASSERT_TRUE(matchedPoint);
 
   std::size_t index = matchedPoint->curveIndex;
-  EXPECT_NEAR(section.getX()[index], 1., 1e-3);
+  EXPECT_NEAR(section.getX()[index], 0.5, 1e-3);
   EXPECT_NEAR(section.getY()[index], 2., 1e-3);
-  // EXPECT_GT(matchedPoint->frenetPose.lateralDeviation, 1.);
+  EXPECT_GT(matchedPoint->frenetPose.lateralDeviation, 1.);
 }
 
 TEST_F(TestSectionMatching, invertedRobotOrientationAtTheClosestPointNegativeSpeedPath)

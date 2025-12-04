@@ -13,20 +13,18 @@
 // limitations under the License.
 
 // std
-#include <cmath>
-#include <optional>
 #include <algorithm>
 #include <cassert>
-#include <iterator>
+#include <cmath>
 #include <iostream>
+#include <iterator>
 #include <list>
+#include <optional>
 
 // romea
-#include "romea_core_path/PathSectionMatching2D.hpp"
-#include <Eigen/src/Core/Matrix.h>
-#include "romea_core_common/math/EulerAngles.hpp"
 #include "romea_core_common/math/Algorithm.hpp"
-
+#include "romea_core_common/math/EulerAngles.hpp"
+#include "romea_core_path/PathSectionMatching2D.hpp"
 
 namespace
 {
@@ -91,7 +89,7 @@ size_t findNearestOrientedCurveIndex(
     if (sqDist < minSqDist) {
       // this condition keeps the same direction than the previous one for the last point
       if (n < indexRange.upper()) {
-        curSectionDir = Eigen::Vector2d{x[n+1], y[n+1]} - point;
+        curSectionDir = Eigen::Vector2d{x[n + 1], y[n + 1]} - point;
       }
 
       // if the pose orientation is the same as the section or the opposite if the speed is negative
@@ -105,7 +103,6 @@ size_t findNearestOrientedCurveIndex(
   return nearestPointIndex;
 }
 
-
 //-----------------------------------------------------------------------------
 std::optional<romea::core::PathMatchedPoint2D> match_impl(
   const romea::core::PathSection2D & section,
@@ -117,41 +114,36 @@ std::optional<romea::core::PathMatchedPoint2D> match_impl(
 {
   std::optional<romea::core::PathMatchedPoint2D> matchedPoint;
 
-  size_t nearestCurveIndex = findNearestOrientedCurveIndex(
-    section,
-    vehiclePose,
-    rangeIndex,
-    researchRadius);
+  size_t nearestCurveIndex =
+    findNearestOrientedCurveIndex(section, vehiclePose, rangeIndex, researchRadius);
 
   if (nearestCurveIndex != section.size()) {
-    matchedPoint = match(
-      section.getCurve(nearestCurveIndex),
-      vehiclePose,
-      section.getSpeeds()[nearestCurveIndex]);
+    const auto & curve = section.getCurve(nearestCurveIndex);
+    double pathSpeed = section.getSpeeds()[nearestCurveIndex];
+    matchedPoint = match(curve, vehiclePose, pathSpeed);
   }
 
   if (matchedPoint.has_value()) {
     matchedPoint->curveIndex = findNearestCurveIndex(
-      section, matchedPoint->pathPosture.position,
+      section,
+      matchedPoint->pathPosture.position,
       section.getCurve(nearestCurveIndex).getIndexInterval(),
       researchRadius);
 
     matchedPoint->desiredSpeed = section.getSpeeds()[matchedPoint->curveIndex];
 
-    double futureCurvilinearAbscissa = matchedPoint->frenetPose.curvilinearAbscissa +
-      std::abs(vehicleSpeed) * time_horizon;
+    double futureCurvilinearAbscissa =
+      matchedPoint->frenetPose.curvilinearAbscissa + std::abs(vehicleSpeed) * time_horizon;
 
-    size_t futureCurveIndex = section.findIndex(
-      futureCurvilinearAbscissa,
-      matchedPoint->curveIndex);
+    size_t futureCurveIndex =
+      section.findIndex(futureCurvilinearAbscissa, matchedPoint->curveIndex);
 
-    matchedPoint->futureCurvature = section.getCurve(futureCurveIndex).
-      computeCurvature(futureCurvilinearAbscissa);
+    matchedPoint->futureCurvature =
+      section.getCurve(futureCurveIndex).computeCurvature(futureCurvilinearAbscissa);
   }
 
   return matchedPoint;
 }
-
 
 //-----------------------------------------------------------------------------
 std::optional<romea::core::PathMatchedPoint2D> match_impl(
@@ -169,7 +161,6 @@ std::optional<romea::core::PathMatchedPoint2D> match_impl(
     romea::core::Interval<size_t>(0, section.size() - 1),
     researchRadius);
 }
-
 
 }  // namespace
 
@@ -189,7 +180,6 @@ std::optional<PathMatchedPoint2D> match(
 {
   return match_impl(section, vehiclePose, vehicleSpeed, time_horizon, researchRadius);
 }
-
 
 //-----------------------------------------------------------------------------
 std::optional<PathMatchedPoint2D> match(
@@ -225,24 +215,15 @@ std::optional<PathMatchedPoint2D> match(
   const double & time_horizon,
   const double & researchRadius)
 {
-  Interval<size_t> rangeIndex = section.
-    findIntervalBoundIndexes(previousCurveIndex, curvilinearAbscissaInterval);
+  Interval<size_t> rangeIndex =
+    section.findIntervalBoundIndexes(previousCurveIndex, curvilinearAbscissaInterval);
 
-  return match_impl(
-    section,
-    vehiclePose,
-    vehicleSpeed,
-    time_horizon,
-    rangeIndex,
-    researchRadius);
+  return match_impl(section, vehiclePose, vehicleSpeed, time_horizon, rangeIndex, researchRadius);
 }
-
 
 //-----------------------------------------------------------------------------
 std::optional<PathMatchedPoint2D> match(
-  const PathCurve2D & curve,
-  const Pose2D & vehiclePose,
-  const double & desiredSpeed)
+  const PathCurve2D & curve, const Pose2D & vehiclePose, const double & desiredSpeed)
 {
   // std::cout << " search nearest curvilinear abscissa " << std::endl;
   auto nearestCurvilinearAbscissa = curve.findNearestCurvilinearAbscissa(vehiclePose.position);
@@ -270,9 +251,8 @@ std::optional<PathMatchedPoint2D> match(
       Eigen::Matrix3d frenetPoseCovariance = J * vehiclePose.covariance * J.transpose();
 
       // Singularity
-      if ((std::abs(curvature) > 10e-6) &&
-        (std::abs(lateralDeviation - (1 / curvature)) <= 10e-6))
-      {
+      if (
+        (std::abs(curvature) > 10e-6) && (std::abs(lateralDeviation - (1 / curvature)) <= 10e-6)) {
         curvature = 0;
       }
 
@@ -295,7 +275,6 @@ std::optional<PathMatchedPoint2D> match(
 
   return {};
 }
-
 
 }  // namespace core
 }  // namespace romea
