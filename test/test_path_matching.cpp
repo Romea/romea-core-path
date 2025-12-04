@@ -198,6 +198,11 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
   auto firstMatchedPoints =
     match(*path, firstVehiclePose, firstVehicleSpeed, timeHorizon, maximalRadiusResearch);
 
+  // new algo: only keep the closest matchedPoint when trying to match for the first time
+  ASSERT_EQ(firstMatchedPoints.size(), 1);
+  EXPECT_EQ(firstMatchedPoints.front().sectionIndex, 0);
+  EXPECT_EQ(firstMatchedPoints.front().curveIndex, 225);
+
   auto secondMatchedPoints = match(
     *path,
     secondVehiclePose,
@@ -206,16 +211,6 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdDecelerrate)
     10.,
     timeHorizon,
     maximalRadiusResearch);
-
-  ASSERT_EQ(firstMatchedPoints.size(), 2);
-  EXPECT_EQ(firstMatchedPoints.front().sectionIndex, 0);
-  EXPECT_EQ(firstMatchedPoints.front().curveIndex, 225);
-  EXPECT_EQ(firstMatchedPoints.back().sectionIndex, 1);
-  EXPECT_EQ(firstMatchedPoints.back().curveIndex, 11);
-
-  EXPECT_LT(
-    firstMatchedPoints.front().frenetPose.curvilinearAbscissa,
-    firstMatchedPoints.back().frenetPose.curvilinearAbscissa);
 
   ASSERT_EQ(secondMatchedPoints.size(), 2);
   EXPECT_EQ(secondMatchedPoints.front().sectionIndex, 0);
@@ -256,17 +251,12 @@ TEST_F(TestPathMatching, testLocalMatchingOKBirdAccelerate)
     timeHorizon,
     maximalRadiusResearch);
 
-  EXPECT_EQ(firstMatchedPoints.size(), 2);
+  // new algo: only keep the closest matchedPoint when trying to match for the first time
+  ASSERT_EQ(firstMatchedPoints.size(), 1); // previously, it was 2
   EXPECT_EQ(firstMatchedPoints.front().sectionIndex, 0);
   EXPECT_EQ(firstMatchedPoints.front().curveIndex, 225);
-  EXPECT_EQ(firstMatchedPoints.back().sectionIndex, 1);
-  EXPECT_EQ(firstMatchedPoints.back().curveIndex, 11);
 
-  EXPECT_LT(
-    firstMatchedPoints.front().frenetPose.curvilinearAbscissa,
-    firstMatchedPoints.back().frenetPose.curvilinearAbscissa);
-
-  EXPECT_EQ(secondMatchedPoints.size(), 2);
+  ASSERT_EQ(secondMatchedPoints.size(), 2);
   // EXPECT_EQ(secondMatchedPoints.front().sectionIndex, 0);
   // EXPECT_EQ(secondMatchedPoints.front().curveIndex, 258);
   // EXPECT_EQ(secondMatchedPoints.back().sectionIndex, 1);
@@ -314,7 +304,7 @@ TEST_F(TestPathMatching, localMatchingFailedWhenPositionIsTooFarFromTheLastMatch
     timeHorizon,
     maximalRadiusResearch);
 
-  EXPECT_EQ(firstMatchedPoints.size(), 2);
+  EXPECT_EQ(firstMatchedPoints.size(), 1);
   EXPECT_EQ(secondMatchedPoints.empty(), true);
 }
 
