@@ -40,13 +40,13 @@ namespace core
 {
 
 //-----------------------------------------------------------------------------
-PathFile::PathFile(const std::string & filename, const double min_spacing)
+PathFile::PathFile(const std::string & filename)
 : coordinate_system_(),
   world_to_path_(),
   wgs84_anchor_(),
   way_points_(),
   file_(filename),
-  min_spacing_(min_spacing)
+  linear_spacing_v4_(0.1)
 {
   if (file_.is_open()) {
     auto data = nlohmann::json::parse(file_);
@@ -335,7 +335,7 @@ std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
 {
   bool const_speed = (start.desired_speed == end.desired_speed);
   Eigen::Vector2d dir = (end.position - start.position).normalized();
-  double step = min_spacing_ / 10;
+  double step = linear_spacing_v4_;
   std::vector<PathWayPoint2D> line_points;
 
   Eigen::Vector2d pos = start.position;

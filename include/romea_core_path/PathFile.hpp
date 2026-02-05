@@ -41,7 +41,7 @@ public:
 
 public:
   PathFile();
-  explicit PathFile(const std::string & filename, const double min_spacing);
+  explicit PathFile(const std::string & filename);
 
   const std::vector<std::vector<PathWayPoint2D>> & getWayPoints() const;
   const std::string & getCoordinateSystemDescription() const;
@@ -75,7 +75,7 @@ private:
   std::optional<GeodeticCoordinates> wgs84_anchor_;
   std::vector<std::vector<PathWayPoint2D>> way_points_;
   std::ifstream file_;
-  double min_spacing_;
+  double linear_spacing_v4_;
   Annotations annotations_;
 };
 PathWayPoint2D PathWayPointFromJSON(
