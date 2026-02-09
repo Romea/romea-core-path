@@ -60,14 +60,15 @@ private:
   void loadWayPointsV2_(const nlohmann::json & data);
   void loadAnnotations(const nlohmann::json & data);
 
-  void loadV3_(const nlohmann::json & data);
-  void loadHeaderV3_(const nlohmann::json & data);
-  void loadWayPointsV3_(const nlohmann::json & data);
-  void loadRowLineV3_(const nlohmann::json columns, const nlohmann::json values);
-  void loadRowPathV3_(const nlohmann::json columns, const nlohmann::json values);
-  void loadTurnPathV3_(const nlohmann::json columns, const nlohmann::json values);
+  void loadV4_(const nlohmann::json & data);
+  void loadHeaderV4_(const nlohmann::json & data);
+  void loadWayPointsV4_(const nlohmann::json & data);
+  void loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values);
+  void loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values);
+  void loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values);
   std::vector<PathWayPoint2D> linearInterpolate_(
     const PathWayPoint2D start, const PathWayPoint2D end);
+  std::size_t getWaypointsSize();
 
 private:
   std::string coordinate_system_;

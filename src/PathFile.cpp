@@ -56,8 +56,8 @@ PathFile::PathFile(const std::string & filename)
       loadWayPoints_();
     } else if (version == "2") {
       loadV2_(data);
-    } else if (version == "3") {
-      loadV3_(data);
+    } else if (version == "4") {
+      loadV4_(data);
     } else {
       throw(std::runtime_error("Version of path file " + filename + " not supported"));
     }
@@ -212,13 +212,16 @@ void PathFile::loadAnnotations(const nlohmann::json & data)
   }
 }
 
-void PathFile::loadV3_(const nlohmann::json & data)
+void PathFile::loadV4_(const nlohmann::json & data)
 {
-  loadHeaderV3_(data);
-  loadWayPointsV3_(data);
+  loadHeaderV4_(data);
+  loadWayPointsV4_(data);
+  for (const auto & a : annotations_) {
+    std::cerr << a.first << " : " << a.second.type << " " << a.second.value << "\n";
+  }
 }
 
-void PathFile::loadHeaderV3_(const nlohmann::json & data)
+void PathFile::loadHeaderV4_(const nlohmann::json & data)
 {
   const auto & origin = data["origin"];
   if (origin["type"] == "WGS84") {
@@ -235,7 +238,7 @@ void PathFile::loadHeaderV3_(const nlohmann::json & data)
   }
 }
 
-void PathFile::loadWayPointsV3_(const nlohmann::json & data)
+void PathFile::loadWayPointsV4_(const nlohmann::json & data)
 {
   const auto & points = data["points"];
   way_points_.emplace_back();
@@ -245,16 +248,16 @@ void PathFile::loadWayPointsV3_(const nlohmann::json & data)
     const auto & values = segment["values"];
     //way_points_.back().reserve(values.size());
     if (segment_type == "row_path") {
-      loadRowPathV3_(columns, values);
+      loadRowPathV4_(columns, values);
     } else if (segment_type == "row_line") {
-      loadRowLineV3_(columns, values);
+      loadRowLineV4_(columns, values);
     } else if (segment_type == "turn_path") {
-      loadTurnPathV3_(columns, values);
+      loadTurnPathV4_(columns, values);
     }
   }
 }
 
-void PathFile::loadRowPathV3_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values)
 {
   // check if last section is backwards
   if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
@@ -275,7 +278,7 @@ void PathFile::loadRowPathV3_(const nlohmann::json columns, const nlohmann::json
   }
 }
 
-void PathFile::loadRowLineV3_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values)
 {
   // check if last section is backwards
   if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
@@ -289,6 +292,14 @@ void PathFile::loadRowLineV3_(const nlohmann::json columns, const nlohmann::json
     ++i;
   }
 
+  size_t next_index = getWaypointsSize();
+  nlohmann::json enter_work{
+    {"type", "zone_enter"},
+    {"use_point_index", true},
+    {"value", "work"},
+    {"point_index", next_index}};
+  annotations_.insert(
+    std::pair<size_t, PathAnnotation>(enter_work["point_index"].get<std::size_t>(), enter_work));
   PathWayPoint2D start_point = PathWayPointFromJSON(col_indexes, values[0]);
   // nan should pass
   assert(!(start_point.desired_speed < 0));
@@ -301,11 +312,20 @@ void PathFile::loadRowLineV3_(const nlohmann::json columns, const nlohmann::json
     const auto line_points = linearInterpolate_(start_point, end_point);
 
     way_points_.back().insert(way_points_.back().end(), line_points.cbegin(), line_points.cend());
+
     start_point = end_point;
   }
+  next_index = getWaypointsSize();
+  nlohmann::json exit_work{
+    {"type", "zone_exit"},
+    {"use_point_index", true},
+    {"value", "work"},
+    {"point_index", next_index - 1}};
+  annotations_.insert(
+    std::pair<size_t, PathAnnotation>(exit_work["point_index"].get<std::size_t>(), exit_work));
 }
 
-void PathFile::loadTurnPathV3_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values)
 {
   int curr_sign = 1;
   if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
@@ -318,6 +338,16 @@ void PathFile::loadTurnPathV3_(const nlohmann::json columns, const nlohmann::jso
     col_indexes[col] = i;
     ++i;
   }
+
+  size_t next_index = getWaypointsSize();
+  nlohmann::json enter_uturn{
+    {"type", "zone_enter"},
+    {"use_point_index", true},
+    {"value", "uturn"},
+    {"point_index", next_index}};
+  annotations_.insert(
+    std::pair<size_t, PathAnnotation>(enter_uturn["point_index"].get<std::size_t>(), enter_uturn));
+
   for (const auto & point : values) {
     PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
     double new_speed = new_point.desired_speed;
@@ -328,6 +358,13 @@ void PathFile::loadTurnPathV3_(const nlohmann::json columns, const nlohmann::jso
     }
     way_points_.back().emplace_back(new_point);
   }
+  nlohmann::json exit_uturn{
+    {"type", "zone_exit"},
+    {"use_point_index", true},
+    {"value", "uturn"},
+    {"point_index", next_index + values.size() - 1}};
+  annotations_.insert(
+    std::pair<size_t, PathAnnotation>(exit_uturn["point_index"].get<std::size_t>(), exit_uturn));
 }
 
 std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
@@ -351,6 +388,15 @@ std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
 
   line_points.emplace_back(end);
   return line_points;
+}
+
+std::size_t PathFile::getWaypointsSize()
+{
+  int i = 0;
+  for (const auto & section : way_points_) {
+    i += section.size();
+  }
+  return i;
 }
 
 //-----------------------------------------------------------------------------
