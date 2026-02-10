@@ -212,13 +212,18 @@ void PathFile::loadAnnotations(const nlohmann::json & data)
   }
 }
 
+void PathFile::addAnnotation(const std::string type, const std::string value, const size_t index)
+{
+  nlohmann::json annotation{
+    {"type", type}, {"use_point_index", true}, {"value", value}, {"point_index", index}};
+  annotations_.insert(
+    std::pair<size_t, PathAnnotation>(annotation["point_index"].get<std::size_t>(), annotation));
+}
+
 void PathFile::loadV4_(const nlohmann::json & data)
 {
   loadHeaderV4_(data);
   loadWayPointsV4_(data);
-  for (const auto & a : annotations_) {
-    std::cerr << a.first << " : " << a.second.type << " " << a.second.value << "\n";
-  }
 }
 
 void PathFile::loadHeaderV4_(const nlohmann::json & data)
@@ -259,17 +264,17 @@ void PathFile::loadWayPointsV4_(const nlohmann::json & data)
 
 void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values)
 {
-  // check if last section is backwards
-  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
-    way_points_.emplace_back();
-  }
-
   std::map<std::string, std::size_t> col_indexes;
   std::size_t i = 0;
   for (const auto & col : columns) {
     col_indexes[col] = i;
     ++i;
   }
+
+  if (newSectionNeeded(col_indexes, values)) {
+    way_points_.emplace_back();
+  }
+
   for (const auto & point : values) {
     PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
     // nan should pass
@@ -280,11 +285,6 @@ void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json
 
 void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values)
 {
-  // check if last section is backwards
-  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
-    way_points_.emplace_back();
-  }
-
   std::map<std::string, std::size_t> col_indexes;
   std::size_t i = 0;
   for (const auto & col : columns) {
@@ -292,46 +292,27 @@ void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json
     ++i;
   }
 
-  size_t next_index = getWaypointsSize();
-  nlohmann::json enter_work{
-    {"type", "zone_enter"},
-    {"use_point_index", true},
-    {"value", "work"},
-    {"point_index", next_index}};
-  annotations_.insert(
-    std::pair<size_t, PathAnnotation>(enter_work["point_index"].get<std::size_t>(), enter_work));
+  if (newSectionNeeded(col_indexes, values)) {
+    way_points_.emplace_back();
+  }
+
+  addAnnotation("zone_enter", "work", getWaypointsSize());
   PathWayPoint2D start_point = PathWayPointFromJSON(col_indexes, values[0]);
-  // nan should pass
-  assert(!(start_point.desired_speed < 0));
   for (i = 1; i < values.size(); ++i) {
     const auto & end_value = values[i];
 
     PathWayPoint2D end_point = PathWayPointFromJSON(col_indexes, end_value);
-    // nan should pass
-    assert(!(end_point.desired_speed < 0));
     const auto line_points = linearInterpolate_(start_point, end_point);
 
     way_points_.back().insert(way_points_.back().end(), line_points.cbegin(), line_points.cend());
 
     start_point = end_point;
   }
-  next_index = getWaypointsSize();
-  nlohmann::json exit_work{
-    {"type", "zone_exit"},
-    {"use_point_index", true},
-    {"value", "work"},
-    {"point_index", next_index - 1}};
-  annotations_.insert(
-    std::pair<size_t, PathAnnotation>(exit_work["point_index"].get<std::size_t>(), exit_work));
+  addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
 }
 
 void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values)
 {
-  int curr_sign = 1;
-  if (!way_points_.back().empty() && way_points_.back().front().desired_speed < 0) {
-    curr_sign = -1;
-  }
-
   std::map<std::string, std::size_t> col_indexes;
   std::size_t i = 0;
   for (const auto & col : columns) {
@@ -339,32 +320,43 @@ void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::jso
     ++i;
   }
 
-  size_t next_index = getWaypointsSize();
-  nlohmann::json enter_uturn{
-    {"type", "zone_enter"},
-    {"use_point_index", true},
-    {"value", "uturn"},
-    {"point_index", next_index}};
-  annotations_.insert(
-    std::pair<size_t, PathAnnotation>(enter_uturn["point_index"].get<std::size_t>(), enter_uturn));
-
-  for (const auto & point : values) {
-    PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
-    double new_speed = new_point.desired_speed;
-    // not a nan and different sign
-    if (new_speed == new_speed && curr_sign * new_speed < 0) {
-      way_points_.emplace_back();
-      curr_sign = -curr_sign;
-    }
-    way_points_.back().emplace_back(new_point);
+  if (newSectionNeeded(col_indexes, values)) {
+    way_points_.emplace_back();
   }
-  nlohmann::json exit_uturn{
-    {"type", "zone_exit"},
-    {"use_point_index", true},
-    {"value", "uturn"},
-    {"point_index", next_index + values.size() - 1}};
-  annotations_.insert(
-    std::pair<size_t, PathAnnotation>(exit_uturn["point_index"].get<std::size_t>(), exit_uturn));
+
+  size_t next_index = getWaypointsSize();
+  addAnnotation("zone_enter", "uturn", next_index);
+
+  PathWayPoint2D prev = PathWayPointFromJSON(col_indexes, values[0]);
+  way_points_.back().emplace_back(prev);
+  PathWayPoint2D curr = PathWayPointFromJSON(col_indexes, values[1]);
+  for (size_t i = 1; i < values.size() - 1; ++i) {
+    PathWayPoint2D next = PathWayPointFromJSON(col_indexes, values[i + 1]);
+    if (!sameDirection(prev, curr, next)) {
+      way_points_.emplace_back();
+    }
+    way_points_.back().emplace_back(curr);
+    prev = curr;
+    curr = next;
+  }
+  way_points_.back().emplace_back(curr);
+
+  addAnnotation("zone_exit", "uturn", next_index + values.size() - 1);
+}
+
+bool PathFile::newSectionNeeded(const nlohmann::json columns, const nlohmann::json values)
+{
+  if (way_points_.back().empty()) {
+    return false;
+  }
+  PathWayPoint2D sec_to_last_point = way_points_.back()[way_points_.size() - 2];
+  PathWayPoint2D last_point = way_points_.back().back();
+  PathWayPoint2D first_point = PathWayPointFromJSON(columns, values[0]);
+  PathWayPoint2D sec_point = PathWayPointFromJSON(columns, values[1]);
+
+  return (
+    !sameDirection(sec_to_last_point, last_point, first_point) ||
+    !sameDirection(last_point, first_point, sec_point));
 }
 
 std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
@@ -437,6 +429,11 @@ PathWayPoint2D PathWayPointFromJSON(
     path_point = PathWayPoint2D(pos);
   }
   return path_point;
+}
+
+bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3)
+{
+  return (p2.position - p1.position).dot(p3.position - p2.position) > 0;
 }
 
 }  // namespace core

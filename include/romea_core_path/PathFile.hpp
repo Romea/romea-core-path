@@ -58,6 +58,7 @@ private:
   void loadV2_(const nlohmann::json & data);
   void loadHeaderV2_(const nlohmann::json & data);
   void loadWayPointsV2_(const nlohmann::json & data);
+  void addAnnotation(const std::string type, const std::string value, const size_t index);
   void loadAnnotations(const nlohmann::json & data);
 
   void loadV4_(const nlohmann::json & data);
@@ -66,6 +67,7 @@ private:
   void loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values);
   void loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values);
   void loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values);
+  bool newSectionNeeded(const nlohmann::json columns, const nlohmann::json values);
   std::vector<PathWayPoint2D> linearInterpolate_(
     const PathWayPoint2D start, const PathWayPoint2D end);
   std::size_t getWaypointsSize();
@@ -81,6 +83,7 @@ private:
 };
 PathWayPoint2D PathWayPointFromJSON(
   std::map<std::string, std::size_t> col_indexes, const nlohmann::json & point);
+bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3);
 
 }  // namespace core
 }  // namespace romea
