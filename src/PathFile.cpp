@@ -28,6 +28,15 @@
 // json
 #include "nlohmann/json.hpp"
 
+// fields2cover
+
+#include "fields2cover/path_planning/path_planning.h"
+#include "fields2cover/path_planning/turning_base.h"
+#include "fields2cover/path_planning/dubins_curves.h"
+#include "fields2cover/path_planning/dubins_curves_cc.h"
+#include "fields2cover/path_planning/reeds_shepp_curves.h"
+#include "fields2cover/path_planning/reeds_shepp_curves_hc.h"
+
 static bool endsWith(std::string_view str, std::string_view suffix)
 {
   return str.size() >= suffix.size() &&
@@ -173,17 +182,18 @@ void PathFile::loadWayPointsV2_(const nlohmann::json & data)
   const auto & section_indexes = data["sections"];
   const auto & values = points["values"];
 
-  std::map<std::string, std::size_t> col_indexes;
-  std::size_t i = 0;
-  for (const auto & col : columns) {
-    col_indexes[col] = i;
-    ++i;
-  }
-
+  // std::map<std::string, std::size_t> col_indexes;
+  // std::size_t i = 0;
+  // for (const auto & col : columns) {
+  //   col_indexes[col] = i;
+  //   ++i;
+  // }
+  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
+  
   way_points_.reserve(values.size());
 
   auto section_it = section_indexes.cbegin();
-  i = 0;
+  std::size_t i = 0;
   for (const auto & point : values) {
     // Create a new section when the point index reaches the next index in the section list
     if (section_it != section_indexes.cend() && i == *section_it) {
@@ -223,6 +233,7 @@ void PathFile::addAnnotation(const std::string type, const std::string value, co
 void PathFile::loadV4_(const nlohmann::json & data)
 {
   loadHeaderV4_(data);
+  loadRobotV4_(data);
   loadWayPointsV4_(data);
 }
 
@@ -243,11 +254,22 @@ void PathFile::loadHeaderV4_(const nlohmann::json & data)
   }
 }
 
+void PathFile::loadRobotV4_(const nlohmann::json & data)
+{
+  const auto & r = data["robot"];
+  robot_ = Robot(
+      r["width"],
+      r["tool_width"],
+      1. / double(r["min_curve_radius"]),
+      r["max_diff_curve"]);
+}
+
 void PathFile::loadWayPointsV4_(const nlohmann::json & data)
 {
   const auto & points = data["points"];
   way_points_.emplace_back();
-  for (const auto & segment : points) {
+  for (auto it = points.begin(); it != points.end(); ++it) {
+    const auto& segment = *it;
     std::string segment_type = segment["segment_type"];
     const auto & columns = segment["columns"];
     const auto & values = segment["values"];
@@ -258,19 +280,17 @@ void PathFile::loadWayPointsV4_(const nlohmann::json & data)
       loadRowLineV4_(columns, values);
     } else if (segment_type == "turn_path") {
       loadTurnPathV4_(columns, values);
+    } else if (segment_type == "turn_segment") {
+      const auto & next = *(std::next(it));
+      const auto & prec = *(std::prev(it));
+      loadTurnV4_(prec, segment, next);
     }
   }
 }
 
 void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values)
 {
-  std::map<std::string, std::size_t> col_indexes;
-  std::size_t i = 0;
-  for (const auto & col : columns) {
-    col_indexes[col] = i;
-    ++i;
-  }
-
+  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
   if (newSectionNeeded(col_indexes, values)) {
     way_points_.emplace_back();
   }
@@ -285,20 +305,15 @@ void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json
 
 void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values)
 {
-  std::map<std::string, std::size_t> col_indexes;
-  std::size_t i = 0;
-  for (const auto & col : columns) {
-    col_indexes[col] = i;
-    ++i;
-  }
+  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
 
-  if (newSectionNeeded(col_indexes, values)) {
-    way_points_.emplace_back();
-  }
+  // if (newSectionNeeded(col_indexes, values)) {
+  //   way_points_.emplace_back();
+  // }
 
   addAnnotation("zone_enter", "work", getWaypointsSize());
   PathWayPoint2D start_point = PathWayPointFromJSON(col_indexes, values[0]);
-  for (i = 1; i < values.size(); ++i) {
+  for (size_t i = 1; i < values.size(); ++i) {
     const auto & end_value = values[i];
 
     PathWayPoint2D end_point = PathWayPointFromJSON(col_indexes, end_value);
@@ -311,18 +326,81 @@ void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json
   addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
 }
 
-void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadTurnV4_(const nlohmann::json prec, const nlohmann::json curr, 
+    const nlohmann::json next)
 {
-  std::map<std::string, std::size_t> col_indexes;
-  std::size_t i = 0;
-  for (const auto & col : columns) {
-    col_indexes[col] = i;
-    ++i;
+
+  const auto & prec_columns = prec["columns"];
+  const auto & curr_columns = curr["columns"];
+  const auto & next_columns = next["columns"];
+
+  std::map<std::string, std::size_t> prec_col_indexes = getColIndexes(prec_columns);
+  std::map<std::string, std::size_t> curr_col_indexes = getColIndexes(curr_columns);
+  std::map<std::string, std::size_t> next_col_indexes = getColIndexes(next_columns);
+
+  // if (newSectionNeeded(curr_col_indexes, values)) {
+  //   way_points_.emplace_back();
+  // }
+
+  addAnnotation("zone_enter", "uturn", getWaypointsSize());
+
+  const auto & values = curr["values"];
+  F2CPoint start {values[0][curr_col_indexes["x"]], values[0][curr_col_indexes["y"]]};
+  F2CPoint end {values[1][curr_col_indexes["x"]], values[1][curr_col_indexes["y"]]};
+
+  double angle_start = getSegmentOrientation(prec);
+  double angle_end = getSegmentOrientation(next);
+
+  std::unique_ptr<f2c::pp::TurningBase> turn;
+  std::string turn_type = curr["turn_type"];
+  if (turn_type == "Dubins") 
+  {
+    turn = std::make_unique<f2c::pp::DubinsCurves>(); 
+  }
+  else if (turn_type == "DubinsCC")
+  {
+    turn = std::make_unique<f2c::pp::DubinsCurvesCC>();
+  }
+  else if (turn_type == "Reeds_Shepp")
+  {
+    turn = std::make_unique<f2c::pp::ReedsSheppCurves>();
+  }
+  else if (turn_type == "Reeds_SheppHC") 
+  {
+    turn = std::make_unique<f2c::pp::ReedsSheppCurvesHC>();
+  }
+  turn->setDiscretization(linear_spacing_v4_);
+
+  f2c::pp::PathPlanning path_planner;
+  F2CPath f2c_path = path_planner.planPathForConnection(
+      robot_,
+      start, 
+      angle_start, 
+      F2CMultiPoint(),
+      end,
+      angle_end,
+      *turn);
+
+  bool section_direction = true;
+  for (const auto & f2c_point : f2c_path)
+  {
+    PathWayPoint2D point = PathWayPointFromF2C(f2c_point);
+    if (section_direction != (point.desired_speed > 0)) {
+      way_points_.emplace_back();
+      section_direction = !section_direction;
+    }
+    way_points_.back().emplace_back(point);
   }
 
-  if (newSectionNeeded(col_indexes, values)) {
-    way_points_.emplace_back();
-  }
+  addAnnotation("zone_exit", "uturn", getWaypointsSize() - 1);
+}
+
+void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values)
+{
+  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
+  // if (newSectionNeeded(col_indexes, values)) {
+  //   way_points_.emplace_back();
+  // }
 
   size_t next_index = getWaypointsSize();
   addAnnotation("zone_enter", "uturn", next_index);
@@ -431,10 +509,50 @@ PathWayPoint2D PathWayPointFromJSON(
   return path_point;
 }
 
+PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point)
+{
+  PathWayPoint2D path_point {
+    Eigen::Vector2d(f2c_point.point.getX(), f2c_point.point.getY()),
+    f2c_point.velocity
+  };
+  if (f2c_point.dir != f2c::types::PathDirection::FORWARD)
+  {
+    path_point.desired_speed *= -1;
+  }
+  return path_point;
+}
+
+double getSegmentOrientation(const nlohmann::json & segment)
+{
+  std::map<std::string, std::size_t> col_indexes = getColIndexes(segment["columns"]);
+  const auto & values = segment["values"];
+
+  const auto & p1_json = values[values.size() - 2];
+  PathWayPoint2D p1 = PathWayPointFromJSON(col_indexes, p1_json);
+
+  const auto & p2_json = values[values.size() - 1];
+  PathWayPoint2D p2 = PathWayPointFromJSON(col_indexes, p2_json);
+
+  const auto & vec = p2.position - p1.position; 
+  return std::atan2(vec.y(), vec.x());
+}
+
 bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3)
 {
   return (p2.position - p1.position).dot(p3.position - p2.position) > 0;
 }
+
+std::map<std::string, std::size_t> getColIndexes(const nlohmann::json columns)
+{
+  std::map<std::string, std::size_t> col_indexes;
+  std::size_t i = 0;
+  for (const auto & col : columns) {
+    col_indexes[col] = i;
+    ++i;
+  }
+  return col_indexes;
+}
+
 
 }  // namespace core
 }  // namespace romea

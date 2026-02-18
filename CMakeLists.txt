@@ -11,6 +11,7 @@ find_package(romea_core_common REQUIRED)
 find_package(GSL REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(nlohmann_json 3.7 REQUIRED)
+find_package(Fields2Cover REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/Path2D.cpp
@@ -39,7 +40,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   romea_core_common::romea_core_common)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  GSL::gsl ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json)
+  GSL::gsl ${BLAS_LIBRARIES} nlohmann_json::nlohmann_json Fields2Cover::Fields2Cover)
 
 include(GNUInstallDirs)
 
