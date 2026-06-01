@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // std
+#include <cmath>
 #include <cstdio>
 #include <exception>
 #include <map>
@@ -30,12 +31,12 @@
 
 // fields2cover
 
-#include "fields2cover/path_planning/path_planning.h"
-#include "fields2cover/path_planning/turning_base.h"
 #include "fields2cover/path_planning/dubins_curves.h"
 #include "fields2cover/path_planning/dubins_curves_cc.h"
+#include "fields2cover/path_planning/path_planning.h"
 #include "fields2cover/path_planning/reeds_shepp_curves.h"
 #include "fields2cover/path_planning/reeds_shepp_curves_hc.h"
+#include "fields2cover/path_planning/turning_base.h"
 
 static bool endsWith(std::string_view str, std::string_view suffix)
 {
@@ -188,8 +189,8 @@ void PathFile::loadWayPointsV2_(const nlohmann::json & data)
   //   col_indexes[col] = i;
   //   ++i;
   // }
-  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
-  
+  std::map<std::string, std::size_t> col_indexes = getColIndices(columns);
+
   way_points_.reserve(values.size());
 
   auto section_it = section_indexes.cbegin();
@@ -256,31 +257,33 @@ void PathFile::loadHeaderV4_(const nlohmann::json & data)
 
 void PathFile::loadRobotV4_(const nlohmann::json & data)
 {
-  const auto & r = data["robot"];
-  robot_ = Robot(
-      r["width"],
-      r["tool_width"],
-      1. / double(r["min_curve_radius"]),
-      r["max_diff_curve"]);
+  if (data.contains("robot")) {
+    const auto & r = data["robot"];
+    robot_ =
+      Robot(r["width"], r["tool_width"], 1. / double(r["min_curve_radius"]), r["max_diff_curve"]);
+  }
 }
 
 void PathFile::loadWayPointsV4_(const nlohmann::json & data)
 {
   const auto & points = data["points"];
   way_points_.emplace_back();
+  forward_section_ = true;
   for (auto it = points.begin(); it != points.end(); ++it) {
-    const auto& segment = *it;
+    const auto & segment = *it;
     std::string segment_type = segment["segment_type"];
-    const auto & columns = segment["columns"];
-    const auto & values = segment["values"];
     //way_points_.back().reserve(values.size());
     if (segment_type == "row_path") {
-      loadRowPathV4_(columns, values);
+      loadRowPathV4_(segment);
     } else if (segment_type == "row_line") {
-      loadRowLineV4_(columns, values);
+      loadRowLineV4_(segment);
     } else if (segment_type == "turn_path") {
-      loadTurnPathV4_(columns, values);
+      loadTurnPathV4_(segment);
     } else if (segment_type == "turn_segment") {
+      if (it == points.begin() || std::next(it) == points.end()) {
+        throw std::runtime_error(
+          "turn_segment cannot be the first or last segment in a v4 trajectory");
+      }
       const auto & next = *(std::next(it));
       const auto & prec = *(std::prev(it));
       loadTurnV4_(prec, segment, next);
@@ -288,153 +291,168 @@ void PathFile::loadWayPointsV4_(const nlohmann::json & data)
   }
 }
 
-void PathFile::loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadRowPathV4_(const nlohmann::json & segment)
 {
-  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
-  if (newSectionNeeded(col_indexes, values)) {
-    way_points_.emplace_back();
-  }
+  const auto & columns = segment["columns"];
+  const auto & values = segment["values"];
+  std::map<std::string, std::size_t> col_indexes = getColIndices(columns);
+
+  bool has_speed = col_indexes.count("speed") > 0;
+  bool has_working_zone = col_indexes.count("working_zone") > 0;
+  bool in_working_zone = false;
 
   for (const auto & point : values) {
     PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
-    // nan should pass
-    assert(!(new_point.desired_speed < 0));
-    way_points_.back().emplace_back(new_point);
+
+    if (has_speed && new_point.desired_speed < 0) {
+      throw std::runtime_error("row_path segment contains a negative speed value");
+    }
+
+    if (has_working_zone) {
+      bool working = (point[col_indexes["working_zone"]].get<int>() == 1);
+      size_t current_index = getWaypointsSize();
+
+      if (working && !in_working_zone) {
+        addAnnotation("zone_enter", "work", current_index);
+        in_working_zone = true;
+      } else if (!working && in_working_zone) {
+        addAnnotation("zone_exit", "work", current_index);
+        in_working_zone = false;
+      }
+    }
+
+    addPoint(new_point);
+  }
+
+  if (in_working_zone) {
+    addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
   }
 }
 
-void PathFile::loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadRowLineV4_(const nlohmann::json & segment)
 {
-  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
+  const auto & columns = segment["columns"];
+  const auto & values = segment["values"];
+  std::map<std::string, std::size_t> col_indexes = getColIndices(columns);
 
-  // if (newSectionNeeded(col_indexes, values)) {
-  //   way_points_.emplace_back();
-  // }
+  bool has_speed = col_indexes.count("speed") > 0;
+  bool has_working_zone = col_indexes.count("working_zone") > 0;
+  bool in_working_zone = false;
 
-  addAnnotation("zone_enter", "work", getWaypointsSize());
   PathWayPoint2D start_point = PathWayPointFromJSON(col_indexes, values[0]);
+  if (has_speed && start_point.desired_speed < 0) {
+    throw std::runtime_error("row_line segment contains a negative speed value");
+  }
+  // add p0 only if it is the very first point of the trajectory;
+  // otherwise the previous segment already added it as its last point
+  if (getWaypointsSize() == 0) {
+    addPoint(start_point);
+  }
+
   for (size_t i = 1; i < values.size(); ++i) {
-    const auto & end_value = values[i];
+    PathWayPoint2D end_point = PathWayPointFromJSON(col_indexes, values[i]);
+    if (has_speed && end_point.desired_speed < 0) {
+      throw std::runtime_error("row_line segment contains a negative speed value");
+    }
 
-    PathWayPoint2D end_point = PathWayPointFromJSON(col_indexes, end_value);
+    if (has_working_zone) {
+      // working_zone[i-1] controls segment (p_{i-1} -> p_i)
+      // last control point's working_zone is never read (i-1 stops at values.size()-2)
+      bool working = (values[i - 1][col_indexes["working_zone"]].get<int>() == 1);
+      // p_{i-1} is already in the trajectory at index getWaypointsSize()-1
+
+      if (working && !in_working_zone) {
+        addAnnotation("zone_enter", "work", getWaypointsSize() - 1);
+        in_working_zone = true;
+      } else if (!working && in_working_zone) {
+        // p_{i-1} is the shared boundary point: first point of the non-working segment
+        addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
+        in_working_zone = false;
+      }
+    }
+
+    // skip the first interpolated point: p_{i-1} is already in the trajectory
     const auto line_points = linearInterpolate_(start_point, end_point);
-
-    way_points_.back().insert(way_points_.back().end(), line_points.cbegin(), line_points.cend());
+    for (size_t j = 1; j < line_points.size(); ++j) {
+      addPoint(line_points[j]);
+    }
 
     start_point = end_point;
   }
-  addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
+
+  if (in_working_zone) {
+    addAnnotation("zone_exit", "work", getWaypointsSize() - 1);
+  }
 }
 
-void PathFile::loadTurnV4_(const nlohmann::json prec, const nlohmann::json curr, 
-    const nlohmann::json next)
+void PathFile::loadTurnV4_(
+  const nlohmann::json & prev, const nlohmann::json & curr, const nlohmann::json & next)
 {
-
-  const auto & prec_columns = prec["columns"];
+  const auto & prec_columns = prev["columns"];
   const auto & curr_columns = curr["columns"];
   const auto & next_columns = next["columns"];
 
-  std::map<std::string, std::size_t> prec_col_indexes = getColIndexes(prec_columns);
-  std::map<std::string, std::size_t> curr_col_indexes = getColIndexes(curr_columns);
-  std::map<std::string, std::size_t> next_col_indexes = getColIndexes(next_columns);
-
-  // if (newSectionNeeded(curr_col_indexes, values)) {
-  //   way_points_.emplace_back();
-  // }
+  std::map<std::string, std::size_t> prec_col_indexes = getColIndices(prec_columns);
+  std::map<std::string, std::size_t> curr_col_indexes = getColIndices(curr_columns);
+  std::map<std::string, std::size_t> next_col_indexes = getColIndices(next_columns);
 
   addAnnotation("zone_enter", "uturn", getWaypointsSize());
 
   const auto & values = curr["values"];
-  F2CPoint start {values[0][curr_col_indexes["x"]], values[0][curr_col_indexes["y"]]};
-  F2CPoint end {values[1][curr_col_indexes["x"]], values[1][curr_col_indexes["y"]]};
+  F2CPoint start{values[0][curr_col_indexes["x"]], values[0][curr_col_indexes["y"]]};
+  F2CPoint end{values[1][curr_col_indexes["x"]], values[1][curr_col_indexes["y"]]};
 
-  double angle_start = getSegmentOrientation(prec);
+  double angle_start = getSegmentOrientation(prev);
   double angle_end = getSegmentOrientation(next);
 
   std::unique_ptr<f2c::pp::TurningBase> turn;
   std::string turn_type = curr["turn_type"];
-  if (turn_type == "Dubins") 
-  {
-    turn = std::make_unique<f2c::pp::DubinsCurves>(); 
-  }
-  else if (turn_type == "DubinsCC")
-  {
+  if (turn_type == "Dubins") {
+    turn = std::make_unique<f2c::pp::DubinsCurves>();
+  } else if (turn_type == "DubinsCC") {
     turn = std::make_unique<f2c::pp::DubinsCurvesCC>();
-  }
-  else if (turn_type == "Reeds_Shepp")
-  {
+  } else if (turn_type == "Reeds_Shepp") {
     turn = std::make_unique<f2c::pp::ReedsSheppCurves>();
-  }
-  else if (turn_type == "Reeds_SheppHC") 
-  {
+  } else if (turn_type == "Reeds_SheppHC") {
     turn = std::make_unique<f2c::pp::ReedsSheppCurvesHC>();
   }
   turn->setDiscretization(linear_spacing_v4_);
 
   f2c::pp::PathPlanning path_planner;
   F2CPath f2c_path = path_planner.planPathForConnection(
-      robot_,
-      start, 
-      angle_start, 
-      F2CMultiPoint(),
-      end,
-      angle_end,
-      *turn);
+    robot_, start, angle_start, F2CMultiPoint(), end, angle_end, *turn);
 
-  bool section_direction = true;
-  for (const auto & f2c_point : f2c_path)
-  {
+  for (const auto & f2c_point : f2c_path) {
     PathWayPoint2D point = PathWayPointFromF2C(f2c_point);
-    if (section_direction != (point.desired_speed > 0)) {
-      way_points_.emplace_back();
-      section_direction = !section_direction;
-    }
-    way_points_.back().emplace_back(point);
+    addPoint(point);
   }
 
   addAnnotation("zone_exit", "uturn", getWaypointsSize() - 1);
 }
 
-void PathFile::loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::loadTurnPathV4_(const nlohmann::json & segment)
 {
-  std::map<std::string, std::size_t> col_indexes = getColIndexes(columns);
-  // if (newSectionNeeded(col_indexes, values)) {
-  //   way_points_.emplace_back();
-  // }
+  const auto & columns = segment["columns"];
+  const auto & values = segment["values"];
+  std::map<std::string, std::size_t> col_indexes = getColIndices(columns);
 
-  size_t next_index = getWaypointsSize();
-  addAnnotation("zone_enter", "uturn", next_index);
+  addAnnotation("zone_enter", "uturn", getWaypointsSize());
 
-  PathWayPoint2D prev = PathWayPointFromJSON(col_indexes, values[0]);
-  way_points_.back().emplace_back(prev);
-  PathWayPoint2D curr = PathWayPointFromJSON(col_indexes, values[1]);
-  for (size_t i = 1; i < values.size() - 1; ++i) {
-    PathWayPoint2D next = PathWayPointFromJSON(col_indexes, values[i + 1]);
-    if (!sameDirection(prev, curr, next)) {
-      way_points_.emplace_back();
-    }
-    way_points_.back().emplace_back(curr);
-    prev = curr;
-    curr = next;
+  for (const auto & point : values) {
+    PathWayPoint2D new_point = PathWayPointFromJSON(col_indexes, point);
+    addPoint(new_point);
   }
-  way_points_.back().emplace_back(curr);
 
-  addAnnotation("zone_exit", "uturn", next_index + values.size() - 1);
+  addAnnotation("zone_exit", "uturn", getWaypointsSize() - 1);
 }
 
-bool PathFile::newSectionNeeded(const nlohmann::json columns, const nlohmann::json values)
+void PathFile::addPoint(const PathWayPoint2D & point)
 {
-  if (way_points_.back().empty()) {
-    return false;
+  if (!std::isnan(point.desired_speed) && point.desired_speed && forward_section_ != point.desired_speed > 0) {
+    way_points_.emplace_back();
+    forward_section_ = !forward_section_;
   }
-  PathWayPoint2D sec_to_last_point = way_points_.back()[way_points_.size() - 2];
-  PathWayPoint2D last_point = way_points_.back().back();
-  PathWayPoint2D first_point = PathWayPointFromJSON(columns, values[0]);
-  PathWayPoint2D sec_point = PathWayPointFromJSON(columns, values[1]);
-
-  return (
-    !sameDirection(sec_to_last_point, last_point, first_point) ||
-    !sameDirection(last_point, first_point, sec_point));
+  way_points_.back().emplace_back(point);
 }
 
 std::vector<PathWayPoint2D> PathFile::linearInterpolate_(
@@ -511,12 +529,9 @@ PathWayPoint2D PathWayPointFromJSON(
 
 PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point)
 {
-  PathWayPoint2D path_point {
-    Eigen::Vector2d(f2c_point.point.getX(), f2c_point.point.getY()),
-    f2c_point.velocity
-  };
-  if (f2c_point.dir != f2c::types::PathDirection::FORWARD)
-  {
+  PathWayPoint2D path_point{
+    Eigen::Vector2d(f2c_point.point.getX(), f2c_point.point.getY()), f2c_point.velocity};
+  if (f2c_point.dir != f2c::types::PathDirection::FORWARD) {
     path_point.desired_speed *= -1;
   }
   return path_point;
@@ -524,8 +539,11 @@ PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point)
 
 double getSegmentOrientation(const nlohmann::json & segment)
 {
-  std::map<std::string, std::size_t> col_indexes = getColIndexes(segment["columns"]);
+  std::map<std::string, std::size_t> col_indexes = getColIndices(segment["columns"]);
   const auto & values = segment["values"];
+  if (values.size() < 2) {
+    throw std::runtime_error("segment adjacent to turn_segment must have at least 2 points");
+  }
 
   const auto & p1_json = values[values.size() - 2];
   PathWayPoint2D p1 = PathWayPointFromJSON(col_indexes, p1_json);
@@ -533,16 +551,11 @@ double getSegmentOrientation(const nlohmann::json & segment)
   const auto & p2_json = values[values.size() - 1];
   PathWayPoint2D p2 = PathWayPointFromJSON(col_indexes, p2_json);
 
-  const auto & vec = p2.position - p1.position; 
+  const auto & vec = p2.position - p1.position;
   return std::atan2(vec.y(), vec.x());
 }
 
-bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3)
-{
-  return (p2.position - p1.position).dot(p3.position - p2.position) > 0;
-}
-
-std::map<std::string, std::size_t> getColIndexes(const nlohmann::json columns)
+std::map<std::string, std::size_t> getColIndices(const nlohmann::json columns)
 {
   std::map<std::string, std::size_t> col_indexes;
   std::size_t i = 0;
@@ -552,7 +565,6 @@ std::map<std::string, std::size_t> getColIndexes(const nlohmann::json columns)
   }
   return col_indexes;
 }
-
 
 }  // namespace core
 }  // namespace romea

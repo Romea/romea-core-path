@@ -24,12 +24,11 @@
 #include <vector>
 
 // romea
+#include "fields2cover/types.h"
 #include "romea_core_common/geodesy/GeodeticCoordinates.hpp"
 #include "romea_core_path/Path2D.hpp"
 #include "romea_core_path/PathAnnotation.hpp"
 #include "romea_core_path/PathWayPoint2D.hpp"
-
-#include "fields2cover/types.h"
 
 namespace romea
 {
@@ -68,15 +67,16 @@ private:
   void loadHeaderV4_(const nlohmann::json & data);
   void loadRobotV4_(const nlohmann::json & data);
   void loadWayPointsV4_(const nlohmann::json & data);
-  void loadRowLineV4_(const nlohmann::json columns, const nlohmann::json values);
-  void loadRowPathV4_(const nlohmann::json columns, const nlohmann::json values);
-  void loadTurnPathV4_(const nlohmann::json columns, const nlohmann::json values);
-  void loadTurnV4_(const nlohmann::json prec, const nlohmann::json curr, const nlohmann::json next);
-  bool newSectionNeeded(const nlohmann::json columns, const nlohmann::json values);
+  void loadRowLineV4_(const nlohmann::json & segment);
+  void loadRowPathV4_(const nlohmann::json & segment);
+  void loadTurnPathV4_(const nlohmann::json & segment);
+  void loadTurnV4_(
+    const nlohmann::json & prev, const nlohmann::json & curr, const nlohmann::json & next);
+  void addPoint(const PathWayPoint2D & point);
+
   std::vector<PathWayPoint2D> linearInterpolate_(
     const PathWayPoint2D start, const PathWayPoint2D end);
   std::size_t getWaypointsSize();
-
 
 private:
   std::string coordinate_system_;
@@ -84,17 +84,18 @@ private:
   std::optional<GeodeticCoordinates> wgs84_anchor_;
   std::vector<std::vector<PathWayPoint2D>> way_points_;
   std::ifstream file_;
-  double linear_spacing_v4_;
   Annotations annotations_;
 
+  double linear_spacing_v4_;
   F2CRobot robot_;
+  bool forward_section_;
 };
 PathWayPoint2D PathWayPointFromJSON(
-  std::map<std::string, std::size_t> col_indexes, const nlohmann::json & point);
+  std::map<std::string, std::size_t> col_indices, const nlohmann::json & point);
 PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point);
 double getSegmentOrientation(const nlohmann::json & segment);
 bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3);
-std::map<std::string, std::size_t> getColIndexes(const nlohmann::json columns);
+std::map<std::string, std::size_t> getColIndices(const nlohmann::json columns);
 
 }  // namespace core
 }  // namespace romea
