@@ -49,6 +49,8 @@ namespace romea
 namespace core
 {
 
+PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point);
+
 //-----------------------------------------------------------------------------
 PathFile::PathFile(const std::string & filename)
 : coordinate_system_(),
@@ -56,7 +58,11 @@ PathFile::PathFile(const std::string & filename)
   wgs84_anchor_(),
   way_points_(),
   file_(filename),
-  linear_spacing_v4_(0.1)
+  linear_spacing_v4_(0.1),
+  robot_width_(2.0),
+  robot_tool_width_(3.0),
+  robot_max_curvature_(0.5),
+  robot_max_diff_curvature_(1.0)
 {
   if (file_.is_open()) {
     auto data = nlohmann::json::parse(file_);
@@ -259,8 +265,10 @@ void PathFile::loadRobotV4_(const nlohmann::json & data)
 {
   if (data.contains("robot")) {
     const auto & r = data["robot"];
-    robot_ =
-      Robot(r["width"], r["tool_width"], 1. / double(r["min_curve_radius"]), r["max_diff_curve"]);
+    robot_width_ = r["width"];
+    robot_tool_width_ = r["tool_width"];
+    robot_max_curvature_ = 1. / double(r["min_curve_radius"]);
+    robot_max_diff_curvature_ = r["max_diff_curve"];
   }
 }
 
@@ -418,9 +426,10 @@ void PathFile::loadTurnV4_(
   }
   turn->setDiscretization(linear_spacing_v4_);
 
+  F2CRobot robot(robot_width_, robot_tool_width_, robot_max_curvature_, robot_max_diff_curvature_);
   f2c::pp::PathPlanning path_planner;
   F2CPath f2c_path = path_planner.planPathForConnection(
-    robot_, start, angle_start, F2CMultiPoint(), end, angle_end, *turn);
+    robot, start, angle_start, F2CMultiPoint(), end, angle_end, *turn);
 
   for (const auto & f2c_point : f2c_path) {
     PathWayPoint2D point = PathWayPointFromF2C(f2c_point);

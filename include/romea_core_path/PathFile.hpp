@@ -24,7 +24,6 @@
 #include <vector>
 
 // romea
-#include "fields2cover/types.h"
 #include "romea_core_common/geodesy/GeodeticCoordinates.hpp"
 #include "romea_core_path/Path2D.hpp"
 #include "romea_core_path/PathAnnotation.hpp"
@@ -39,7 +38,6 @@ class PathFile
 {
 public:
   using Annotations = Path2D::Annotations;
-  using Robot = f2c::types::Robot;
 
 public:
   PathFile();
@@ -87,12 +85,14 @@ private:
   Annotations annotations_;
 
   double linear_spacing_v4_;
-  F2CRobot robot_;
+  double robot_width_;
+  double robot_tool_width_;
+  double robot_max_curvature_;
+  double robot_max_diff_curvature_;
   bool forward_section_;
 };
 PathWayPoint2D PathWayPointFromJSON(
   std::map<std::string, std::size_t> col_indices, const nlohmann::json & point);
-PathWayPoint2D PathWayPointFromF2C(F2CPathState f2c_point);
 double getSegmentOrientation(const nlohmann::json & segment);
 bool sameDirection(const PathWayPoint2D & p1, const PathWayPoint2D & p2, const PathWayPoint2D & p3);
 std::map<std::string, std::size_t> getColIndices(const nlohmann::json columns);
